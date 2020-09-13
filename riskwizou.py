@@ -1,11 +1,13 @@
 from random import randint
+from tools.printable import Printable
+from tools.list import purify
 
-class Zone :
+class Zone(Printable) :
 
-    def __init__(self, n, c, a=[]):
+    def __init__(self, n, c):
         self.name = n
-        self.adj = a
-        self.activeadj = [True for s in self.adj]
+        self.adj = []
+        self.activate()
         self.cont = c
         self.troops = []
         self.owner = None #Country
@@ -15,13 +17,35 @@ class Zone :
         
     def remove(self, unit):
         self.troops = [x for x  in self.troops if  x.id  !=  unit.id]
-        
-class Cont:
     
-    def __init__(self, n, p, z=[]):
+    def add_conn(self,z):
+        """ adds a connection to the zone z 
+        and a connection to self in z"""
+        self.adj.append(z)
+        z.adj.append(self)
+    
+    def add_conns(self,*L):
+        """ adds connections to the zones in L"""
+        for z in L:
+            if type(z) == type(""):
+                self.add_conn(self.cont.w[z])
+            else:
+                self.add_conn(z)
+    
+    def print_conns(self):
+        print(self.name + "-> " + str(self.adj))
+    
+    def activate(self):
+        self.activeadj = [True for s in self.adj]
+        
+        
+class Cont(Printable):
+    
+    def __init__(self, n, p):
         self.name = n
         self.power = p
-        self.zones = z
+        self.zones = []
+        self.w = None # world
     
     def add(self,z):
         """ adding a zone to the continent"""
@@ -45,20 +69,40 @@ class Cont:
                     return z
         else:
             for z in self.zones:
-                if z.name == item.name:
-                    return z
-
-class World:
+                try:
+                    if z.name == item.name:
+                        return z
+                except AttributeError:
+                    return None
     
-    def __init__(self, c=[]):
-        self.continents=c
+    def print_conns(self):
+        for z in self.zones:
+            z.print_conns()
+        
+class World(Printable):
+    
+    def __init__(self, c, name =''):
+        self.name = name
+        for x in c:
+            x.w = self
+        self.continents = c
 
     def __getitem__(self, item):
         for z in self.continents:
             if z[item] is not None:
                 return z[item]
+    
+    def purify_transitions(self):
+        for c in self.continents:
+            for z in c.zones:
+                z.adj = purify(z.adj)
+    
+    def activate_transitions(self):
+        for c in self.continents:
+            for z in c.zones:
+                z.activate()
         
-class Unit:
+class Unit(Printable):
     
     def __init__(self, n, pm, d, z, own, bd=0, bo=0):
         self.name = n
@@ -93,13 +137,13 @@ class Unit:
             score += randint(1,6)
         return score
 
-class Country:
+class Country(Printable):
     def __init__(self, n, c=(0,0,0)):
         self.units = []
         self.name = n
         self.color = c
 
-class Player:
+class Player(Printable):
     
     def __init__(self, n, c):
         self.name = n
