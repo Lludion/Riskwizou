@@ -1,4 +1,4 @@
-from riskwizou import *
+from riskwizou import World,Zone,Cont,Country,Player
 
 ## Continents
 
@@ -87,3 +87,10 @@ earth["peru"].add_conns("venezuela","argentina")
 #global
 earth.purify_transitions()
 earth.activate_transitions()
+
+## Players & Countries
+
+blue = Country("blue", (10,0,150))
+red = Country("red", (150,10,0))
+players = [Player("blue",[blue]), Player("red",[red])]
+

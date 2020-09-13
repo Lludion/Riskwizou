@@ -15,7 +15,7 @@
 "groenland": "Groenland",
 "iceland": "Islande",
 "greatbritain": "Grande-Bretagne",
-"scandinavia": "Scandinavie",
+"scandinavie": "Scandinavie",
 "ukraine": "Ukraine",
 "north": "Europe du Nord",
 "south": "Europe du Sud",
@@ -51,5 +51,9 @@
 "europe": "Europe",
 "asia": "Asie",
 "africa": "Afrique",
-"oceania": "Océanie"
+"oceania": "Océanie",
+"soldier": "Soldat",
+"cavalry": "Cavalier",
+"cannon": "Canon",
+"horde": "Horde"
 }

@@ -1,4 +1,5 @@
 import json
+from random import choice
 
 class Game:
     def __init__(self,w=None):
@@ -6,9 +7,44 @@ class Game:
         self.language = "french"
         self.w = w # world
         self.p = [] # players
+        self.c = [] # countries
+        self.dut = (None,None,None) # default unit types
         self.graphical = False
+        self.ended = False
         with open("data/lang/"+self.language+".json", "r", encoding="utf-8-sig") as read_file:
             self.dict_str = json.load(read_file)
+
+    def set_p(self,players):
+        """ given a set of players, sets self.p and self.c (players and countries) """
+        self.p = []
+        self.c = []
+        for p in players:
+            self.p.append(p)
+            p.g = self
+            for c in p.countries:
+                self.c.append(c)
+                c.g = self
+                c.p = p
+                c.w = self.w
+
+    def begin(self):
+        print(self.c)
+        szs = [] # startzones
+        for c in self.c:
+            startzone = choice(choice(self.w.continents).zones)
+            print(startzone)
+            safe = 150
+            while (startzone in szs) and safe: # may fail for huge number of players
+                startzone = choice(choice(self.w.continents).zones)
+                safe -= 1
+            if not safe:
+                print("ERROR : TOO MANY PLAYERS ! The map is full !")
+                print("Suppressing country "+str(c))
+                del c
+            else:
+                szs.append(startzone)
+                for i in (0,1,2):
+                    startzone.add_troop(self.dut[i],c)
 
     def dstr(self,char):
         """ Try to find if dict_str contains a value for the key 'char'.
@@ -21,5 +57,7 @@ class Game:
             return char
 
     def turn(self):
-        for p in self.p:
-            p.turn()
+        for c in self.c:
+            c.turn()
+            if self.ended:
+                return

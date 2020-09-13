@@ -14,7 +14,18 @@ class Zone(Printable) :
         
     def ntroops(self):
         return len(self.troops)
-        
+    
+    def add_troop(self,type,c):
+        if isinstance(type,list):
+            for u in type:
+                un = u(self,c) # creating a unit
+                self.troops.append(un)
+                c.units.append(un)
+        else:
+            un = type(self,c)
+            self.troops.append(un)
+            c.units.append(un)
+
     def remove(self, unit):
         self.troops = [x for x  in self.troops if  x.id  !=  unit.id]
     
@@ -101,59 +112,65 @@ class World(Printable):
         for c in self.continents:
             for z in c.zones:
                 z.activate()
-        
-class Unit(Printable):
-    
-    def __init__(self, n, pm, d, z, own, bd=0, bo=0):
-        self.name = n
-        self.pm = pm #point de mouvement
-        self.d = d #nombre de dés lancés
-        self.z = z #zone actuelle
-        self.pmmax = pm
-        self.boostd = bd
-        self.boosto = bo
-        self.owner = own
-        self.id = randint(1, 99999999999999)
-        
-    def move(self, z):
-        if self.pm > 0:
-            if z.ntroops():
-                pass
-            else: #arriving on an empty territory
-                z.owner = self.owner
-                self.z.remove(self)
-                self.z = z
-                self.pm -= 1
-            
-    def attack(self):
-        score = bo
-        for _ in  range(self.d):
-            score += randint(1,6)
-        return score 
-         
-    def defend(self):
-        score = bd
-        for _ in  range(self.d):
-            score += randint(1,6)
-        return score
 
 class Country(Printable):
     def __init__(self, n, c=(0,0,0)):
         self.units = []
-        self.name = n
+        self.name = n # all countries must have different name
         self.color = c
         self.p = None # player
         self.g = None # game
+        self.w = None # world
     
     def choose_units(self):
+        
+        ch = []
+        z = self.w.continents[0].zones[0]
         if self.g.graphical:
-            return []
+            print("~~GRAPHICAL~~")
+            pass #TODO
         else:
-            pass
-            
+            z = None # zone
+            for u in self.units:
+                print(u)
+                if (z is None or z == u.z) and u.pm >= 1:
+                    if input("Do you select this unit?"):
+                        z = u.z
+                        ch.append(u)
+                else:
+                    print("(Unité non sélectionable)")
+        print("sélectionné: "+str(ch))
+        return ch, z
         
     def turn(self):
-        chosen = self.choose_units()
+        #not graphical
+        print("Turn of "+self.name)
+        turn = True
+        for u in self.units:
+            u.pm = u.pmmax # restoring pm
+        while turn:
+            print("What do you want to do?")
+            ch = input("m for move, e for end the turn, q for quit ")
+            if "q" in ch or "Q" in ch:
+                turn = False
+                self.g.ended = True
+            elif "e" in ch or "E" in ch:
+                turn = False
+            else:
+                chosen,gofrom = self.choose_units()
+                if chosen:
+                    print("Where do you want to go?")
+                    for i in range(len(gofrom.adj)):
+                        print(str(i)+" : "+str(gofrom.adj[i]))
+                    i = int(input("Entrer le numero de la destination:"))
+                    while i != i % len(gofrom.adj):
+                        i = int(input("Entrer le numero de la destination (<"+str(len(gofrom.adj))+"):"))
+                    dest = gofrom.adj[i]
+                    for u in chosen:
+                        u.move(dest)
+                else:
+                    print("No Units selected.")
+        
     
     def attack(self, units, enemy):
         if units != []:
@@ -170,6 +187,7 @@ class Player(Printable):
     def __init__(self, n, c):
         self.name = n
         self.countries = c #One player may control several countries
+        self.g = None
     
     def get_countries(self,new):
         self.countries += new

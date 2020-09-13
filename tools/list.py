@@ -9,3 +9,10 @@ def purify(L):
         if a not in seen:
             seen.append(a)
     return seen
+
+def forall(f,L):
+    """returns True iff f(L[i]) for all i"""
+    v = True
+    for e in L:
+        v &= f(e)
+    return v
