@@ -1,10 +1,12 @@
 import json
 
 class Game:
-    def __init__(self):
+    def __init__(self,w=None):
         """ Initialization """
         self.language = "french"
-
+        self.w = w # world
+        self.p = [] # players
+        self.graphical = False
         with open("data/lang/"+self.language+".json", "r", encoding="utf-8-sig") as read_file:
             self.dict_str = json.load(read_file)
 
@@ -17,3 +19,7 @@ class Game:
             return self.dict_str[char]
         except KeyError:
             return char
+
+    def turn(self):
+        for p in self.p:
+            p.turn()

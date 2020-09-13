@@ -142,15 +142,18 @@ class Country(Printable):
         self.units = []
         self.name = n
         self.color = c
-
-class Player(Printable):
+        self.p = None # player
+        self.g = None # game
     
-    def __init__(self, n, c):
-        self.name = n
-        self.countries = c #One player may control several countries
-    
+    def choose_units(self):
+        if self.g.graphical:
+            return []
+        else:
+            pass
+            
+        
     def turn(self):
-        pass
+        chosen = self.choose_units()
     
     def attack(self, units, enemy):
         if units != []:
@@ -161,3 +164,15 @@ class Player(Printable):
             else:
                 atkscore = sum([unit.attack() for unit in units])
                 defscore = sum([unit.defend() for unit in enemy])
+
+class Player(Printable):
+    
+    def __init__(self, n, c):
+        self.name = n
+        self.countries = c #One player may control several countries
+    
+    def get_countries(self,new):
+        self.countries += new
+        for c in self.countries:
+            c.p = self
+
