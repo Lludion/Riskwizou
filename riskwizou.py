@@ -5,6 +5,7 @@ class Zone :
     def __init__(self, n, c, a=[]):
         self.name = n
         self.adj = a
+        self.activeadj = [True for s in self.adj]
         self.cont = c
         self.troops = []
         self.owner = None #Country
@@ -21,11 +22,41 @@ class Cont:
         self.name = n
         self.power = p
         self.zones = z
+    
+    def add(self,z):
+        """ adding a zone to the continent"""
+        if type(z) == type(""):
+            newzone = Zone(z,self)
+        else:
+            newzone = z
+        
+        newzone.cont = self
+        self.zones.append(newzone)
+    
+    def adds(self,list):
+        """ adding several zones """
+        for z in list:
+            self.add(z)
+            
+    def __getitem__(self, item):
+        if type(item) == type(""):
+            for z in self.zones:
+                if z.name == item:
+                    return z
+        else:
+            for z in self.zones:
+                if z.name == item.name:
+                    return z
 
 class World:
     
-    def __init__(self, c):
+    def __init__(self, c=[]):
         self.continents=c
+
+    def __getitem__(self, item):
+        for z in self.continents:
+            if z[item] is not None:
+                return z[item]
         
 class Unit:
     
