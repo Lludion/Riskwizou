@@ -1,10 +1,11 @@
-
+import json
 
 class Game:
     def __init__(self):
         """ Initialization """
+        self.language = "french"
 
-        with open("data/lang/french.json", "r", encoding="utf-8-sig") as read_file:
+        with open("data/lang/"+self.language+".json", "r", encoding="utf-8-sig") as read_file:
             self.dict_str = json.load(read_file)
 
     def dstr(self,char):
