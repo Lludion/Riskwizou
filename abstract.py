@@ -29,13 +29,20 @@ class Game:
 
     def begin(self):
         print(self.c)
+        self.__set_startzones()
+
+    def __randomzone(self):
+        # return choice(choice(self.w.continents).zones)
+        return choice((self.w.continents[5]).zones)
+
+    def __set_startzones(self):
         szs = [] # startzones
         for c in self.c:
-            startzone = choice(choice(self.w.continents).zones)
+            startzone = self.__randomzone()
             print(startzone)
             safe = 150
             while (startzone in szs) and safe: # may fail for huge number of players
-                startzone = choice(choice(self.w.continents).zones)
+                startzone = self.__randomzone()
                 safe -= 1
             if not safe:
                 print("ERROR : TOO MANY PLAYERS ! The map is full !")

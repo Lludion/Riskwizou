@@ -1,6 +1,7 @@
 from random import randint
 from tools.printable import Printable
 from tools.list import purify
+from tools.defeat import defeat
 
 class Zone(Printable) :
 
@@ -27,8 +28,12 @@ class Zone(Printable) :
             c.units.append(un)
 
     def remove(self, unit):
-        self.troops = [x for x  in self.troops if  x.id  !=  unit.id]
+        self.troops = [x for x in self.troops if  x.id  !=  unit.id]
     
+    def nforeign(self,c):
+        """ number of foreigners in self, wrt the country c """
+        return len([u for u in self.troops if u.owner != c])
+        
     def add_conn(self,z):
         """ adds a connection to the zone z 
         and a connection to self in z"""
@@ -116,7 +121,7 @@ class World(Printable):
 class Country(Printable):
     def __init__(self, n, c=(0,0,0)):
         self.units = []
-        self.name = n # all countries must have different name
+        self.name = n # all countries must have a different name
         self.color = c
         self.p = None # player
         self.g = None # game
@@ -132,7 +137,7 @@ class Country(Printable):
         else:
             z = None # zone
             for u in self.units:
-                print(u)
+                u.info()
                 if (z is None or z == u.z) and u.pm >= 1:
                     if input("Do you select this unit?"):
                         z = u.z
@@ -143,6 +148,13 @@ class Country(Printable):
         return ch, z
         
     def turn(self):
+        if not self.units: # no units
+            return
+        elif not [x for x in self.g.c if x != self and x.units]:
+            #no one else has units
+            print(self.name, "won !")
+            self.g.ended = True
+            return
         #not graphical
         print("Turn of "+self.name)
         turn = True
@@ -161,13 +173,46 @@ class Country(Printable):
                 if chosen:
                     print("Where do you want to go?")
                     for i in range(len(gofrom.adj)):
-                        print(str(i)+" : "+str(gofrom.adj[i]))
-                    i = int(input("Entrer le numero de la destination:"))
-                    while i != i % len(gofrom.adj):
-                        i = int(input("Entrer le numero de la destination (<"+str(len(gofrom.adj))+"):"))
-                    dest = gofrom.adj[i]
-                    for u in chosen:
-                        u.move(dest)
+                        print(str(i)+" : "+str(gofrom.adj[i]),"(",gofrom.adj[i].nforeign(self),"foreigners)")
+                    try:
+                        i = int(input("Entrer le numero de la destination:"))
+                    except ValueError:
+                        i = -1 # to always enter the loop
+                    finally:
+                        while i != i % len(gofrom.adj):
+                            try:
+                                i = int(input("Entrer le numero de la destination (<"+str(len(gofrom.adj))+"):"))
+                            except ValueError:
+                                i = -1 # to always re-enter the loop
+                        dest = gofrom.adj[i]
+                        if dest.nforeign(self):
+                            # diplomacy will be implemented later
+                            print("Attackers :")
+                            atkscore = 0
+                            for u in chosen:
+                                atk = u.attack()
+                                atkscore += atk
+                            print("Total : ",atkscore)
+                            
+                            print("Defenders :")
+                            defscore = 0
+                            for u in dest.troops: # all foreign units are attacked
+                                atk = u.attack()
+                                defscore += atk
+                            print("Total : ",defscore)
+                            
+                            if atkscore <= defscore:
+                                print("defenders win !")
+                                defeat(chosen)
+                            else:
+                                print("attackers win !")
+                                defeat(dest.troops,"no") # all troops are killed
+                                for u in chosen:
+                                    u.move(dest)
+
+                        else:
+                            for u in chosen:
+                                u.move(dest)
                 else:
                     print("No Units selected.")
         
@@ -181,6 +226,9 @@ class Country(Printable):
             else:
                 atkscore = sum([unit.attack() for unit in units])
                 defscore = sum([unit.defend() for unit in enemy])
+
+    def remove(self, unit):
+        self.units = [x for x in self.units if  x.id  !=  unit.id]
 
 class Player(Printable):
     

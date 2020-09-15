@@ -14,32 +14,72 @@ class Unit(Printable):
         self.boostd = bd
         self.boosto = bo
         self.owner = own
+        self.has_attacked = False
         self.id = randint(1, 99999999999999)
+
+    def beginturn(self):
+        if self.z.owner is None: # useful for abandoning province while having friendly armies present
+            self.z.owner = self.owner
+        self.has_attacked = False
 
     def move(self, z):
         if self.pm > 0:
-            if z.ntroops():
-                pass
+            print("Troops number in",z,z.ntroops())
+            if z.nforeign(self.owner):
+                # This is not the place where to check this, as we attack
+                # in large numbers !
+                raise FutureWarning("A check for foreigners in Unit.move saw an unexpected result.")
             else: #arriving on an empty territory
-                z.owner = self.owner
                 self.z.remove(self)
                 self.z = z
                 self.pm -= 1
+                print(z,z.owner)
+                z.owner = self.owner
+                z.troops.append(self)
+                print(z,z.owner)
 
     def attack(self):
-        score = bo
-        for _ in  range(self.d):
-            score += randint(1,6)
-        return score
+        self.has_attacked = True
+        scores = []
+        txt = str(self) + " did "
+        for i in  range(self.d):
+            if i:
+                txt += "+ "
+            scores.append(randint(1,6))
+            txt += str(scores[-1]) + " "
+        if  self.boosto:
+            txt += "+ 1 (boost) "
+        if len(scores) >= 2:
+            txt += "(=" + str(sum(scores) +  self.boosto) + ") "
+        txt += "!"
+        print(txt)
+        return sum(scores) +  self.boosto
 
     def defend(self):
-        score = bd
-        for _ in  range(self.d):
-            score += randint(1,6)
-        return score
+        scores = []
+        txt = str(self) + " did "
+        for i in  range(self.d):
+            if i:
+                txt += "+ "
+            scores.append(randint(1,6))
+            txt += str(scores[-1]) + " "
+        if  self.boostd:
+            txt += "+ 1 (boost)"
+        if len(scores) >= 2:
+            txt += "(=" + str(sum(scores) +  self.boosto) + ") "
+        txt += "!"
+        print(txt)
+        return sum(scores) + self.boostd
 
-    def __repr__(self):
-        return self.__class__.__name__+"{"+self.name+"}\n"+str(self.d)+"D,"+str(self.pm)+"PM/"+str(self.pmmax)+"PMMAX[In "+str(self.z)+"]\n"
+    def info(self):
+        print( self.__class__.__name__+"{"+self.name+"}\n"+str(self.d)+"D,"+str(self.pm)+"PM/"+str(self.pmmax)+"PMMAX[In "+str(self.z)+"]\n" )
+
+    def dies(self):
+        self.z.remove(self)
+        self.z = None
+        self.owner.remove(self)
+        self.owner = None
+        del self
 
 class Soldier(Unit):
 
