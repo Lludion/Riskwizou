@@ -1,5 +1,6 @@
 import json
 from random import choice
+from net.networking import NetworkServer, NetworkClient
 
 class Game:
     def __init__(self,w=None):
@@ -68,3 +69,10 @@ class Game:
             c.turn()
             if self.ended:
                 return
+
+class Networker:
+
+    def __init__(self,host="127.0.0.1"):
+        self.srv = NetworkServer(host)
+        self.cli = NetworkClient(host)
+
