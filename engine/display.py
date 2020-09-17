@@ -49,7 +49,7 @@ class Displayer:
     def main_menu(self):
         print("Menu")
         # self.centerx(self.img["btn1"],200)
-        pygame.time.Clock().tick(24)
+        pygame.time.Clock().tick(self.opt["FPS"])
         keys = pygame.key.get_pressed()
         LAUNCHGAME = 0
         if keys[pygame.K_ESCAPE]:
@@ -117,6 +117,11 @@ class Displayer:
     def filp(self):
         """ used in button_menu """
         pygame.display.flip()
+
+    def tick(self,t=None):
+        """ used in loops """
+        if t is None: t  = self.opt["FPS"]
+        pygame.time.Clock().tick(t)
 
     def set_str(self,d):
         self.dict_str = d

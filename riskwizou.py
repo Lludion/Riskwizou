@@ -256,6 +256,7 @@ class Country(ConsoleCountry):
         for u in self.units:
             u.pm = u.pmmax # restoring pm
         while turn:
+            d.tick()
             if d.key_esc():
                 turn = False
                 self.g.ended = True
