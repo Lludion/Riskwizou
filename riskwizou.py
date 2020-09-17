@@ -118,7 +118,7 @@ class World(Printable):
             for z in c.zones:
                 z.activate()
 
-class Country(Printable):
+class ConsoleCountry(Printable):
     def __init__(self, n, c=(0,0,0)):
         self.units = []
         self.name = n # all countries must have a different name
@@ -126,14 +126,15 @@ class Country(Printable):
         self.p = None # player
         self.g = None # game
         self.w = None # world
+        self.graphical = False #is a Console Country
     
     def choose_units(self):
         
         ch = []
         z = self.w.continents[0].zones[0]
-        if self.g.graphical:
+        if self.graphical:
             print("~~GRAPHICAL~~")
-            pass #TODO
+            print("YOU SHOULDN'T USE THIS CLASS IN GRAPHICAL MODE'")
         else:
             z = None # zone
             for u in self.units:
@@ -229,6 +230,35 @@ class Country(Printable):
 
     def remove(self, unit):
         self.units = [x for x in self.units if  x.id  !=  unit.id]
+
+
+class Country(ConsoleCountry):
+    
+    def __init__(self,n,c=(0,0,0)):
+        super().__init__(n,c)
+        self.graphical = True #is a Graphical Country
+        self.cu_step = 0
+
+    def choose_units(self):
+        """ This function is used when m is being pressed. 
+        It manages the several steps of unit selection.
+        1) zone selection
+        2) unit selection within the zone """
+        if self.cu_step == 0:
+            pass
+    
+    def turn(self,d):
+        """
+        d is the displayer that will be used
+        """
+        print("Turn of "+self.name)
+        turn = True
+        for u in self.units:
+            u.pm = u.pmmax # restoring pm
+        while turn:
+            if d.key_esc():
+                turn = False
+                self.g.ended = True
 
 class Player(Printable):
     

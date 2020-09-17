@@ -24,6 +24,7 @@ class Game:
                 c.g = self
                 c.p = p
                 c.w = self.w
+
     def begin(self):
         self.s(self.c)
         self.__set_startzones()
@@ -61,6 +62,13 @@ class DGame(Game):
     def __init__(self,pf,w=None):
         super().__init__(w=w)
         self.s = pf # print function
+
+    def turn(self):
+        """ the c must be Countries and not ConsoleCountries """
+        for c in self.c:
+            c.turn(self.d)
+            if self.ended:
+                return
 
 class Networker:
 

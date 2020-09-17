@@ -1,6 +1,7 @@
-from abstract import Game,Networker
+from abstract import DGame,Game,Networker
 from engine.display import Displayer
 from earth import earth,players
+from tools.text_display import T
 from units import default_unit_types
 import json
 
@@ -26,7 +27,6 @@ class Almighty:
         self.d.close()
         del self.d
 
-
     def setgdpipe(self):
         """ sets a mean of communication between the game and the displayer """
         self.g.d = self.d
@@ -44,8 +44,12 @@ class Almighty:
         self.begin_game()
         self.play_game()
 
+    def pf(self,k,*args,**kwargs):
+        T(self.d.win,str(k),50,100,200,200,200)# temporary, will be improved
+        # with offsets described in self.toffset
+
     def begin_game(self,w=earth,p=players,dut=default_unit_types):
-        self.g = Game(w)
+        self.g = DGame(self.pf,w)
         self.setgdpipe() # now that the game is created
         self.g.set_p(p)
         self.g.dut = dut

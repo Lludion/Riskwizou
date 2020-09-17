@@ -9,7 +9,7 @@ def s(t): return pygame.time.wait(floor(t * 1000))
 class Displayer:
 
     def __init__(self):
-        self.dict_str={}# to be changed
+        self.dict_str={} # to be changed
         pygame.init()
         self.load_images()
         self.load_options()
@@ -48,7 +48,7 @@ class Displayer:
 
     def main_menu(self):
         print("Menu")
-        #self.centerx(self.img["btn1"],200)
+        # self.centerx(self.img["btn1"],200)
         pygame.time.Clock().tick(24)
         keys = pygame.key.get_pressed()
         LAUNCHGAME = 0
@@ -71,6 +71,21 @@ class Displayer:
 
     def setmap(self,map):
         self.map = self.img["map"]
+
+    def mouse(self):
+        return pygame.mouse.get_pos()
+
+    def keys(self):
+        return pygame.key.get_pressed()
+
+    def key_m(self):
+        return self.keys()[pygame.K_m]
+
+    def key_e(self):
+        return self.keys()[pygame.K_e]
+
+    def key_esc(self):
+        return self.keys()[pygame.K_ESCAPE]
 
     def game(self):
         mouspos = pygame.mouse.get_pos()
