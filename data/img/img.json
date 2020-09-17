@@ -2,5 +2,11 @@
 "R": "title/R.png",
 "bg": "bg/background.png",
 "Riskwizou": "title/Riskwizou.png",
-"worldmap": "bg/worldmap.png"
+"worldmap": "bg/worldmap.png",
+"btn1": "btn/button_menu1.png",
+"btn1H": "btn/button_menu1H.png",
+"btn1D": "btn/button_menu1D.png",
+"btn1HD": "btn/button_menu1HD.png",
+"btn1H": "btn/button_menu1H.png",
+"lock": "btn/locked_layer.png"
 }
