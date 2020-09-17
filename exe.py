@@ -21,6 +21,10 @@ class Almighty:
                 menureturn = self.d.main_menu()
             if menureturn == 1:
                 self.launch_game()
+                self.d.menu = True
+        self.delgdpipe()
+        self.d.close()
+        del self.d
 
 
     def setgdpipe(self):
