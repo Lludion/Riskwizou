@@ -40,6 +40,7 @@ class Displayer:
         self.init_menu()
 
     def init_menu(self):
+        self.win.blit(self.img["bg"],(0,0))
         self.centerx(self.img["Riskwizou"],10)
         pygame.display.flip()
         self.menu = True
@@ -52,19 +53,17 @@ class Displayer:
         pygame.time.Clock().tick(self.opt["FPS"])
         keys = pygame.key.get_pressed()
         LAUNCHGAME = 0
-        if keys[pygame.K_ESCAPE]:
-            self.menu = False
-            LAUNCHGAME = -1
         pos = pygame.mouse.get_pos()
         MOUSE = False
         for event in pygame.event.get():
-            if event.type == KEYDOWN:
-                pass
-            if event.type == MOUSEBUTTONDOWN:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.menu = False
+                    LAUNCHGAME = -1
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 MOUSE = True
                 LAUNCHGAME = int(xyinbounds(pos[0],pos[1],self.buttons[0]))
-        self.display_buttons()
-        pygame.display.flip()
+        self.display_menu()
         if LAUNCHGAME:
             self.menu = False
         return LAUNCHGAME
@@ -78,6 +77,9 @@ class Displayer:
     def keys(self):
         return pygame.key.get_pressed()
 
+    def k_events(self):
+        return [event for event in pygame.event.get() if event.type == pygame.KEYDOWN]
+
     def key_m(self):
         return self.keys()[pygame.K_m]
 
@@ -85,11 +87,12 @@ class Displayer:
         return self.keys()[pygame.K_e]
 
     def key_esc(self):
-        return self.keys()[pygame.K_ESCAPE]
+        return [] != [a for a in self.k_events() if a.key == pygame.K_ESCAPE]
+        #return self.keys()[pygame.K_ESCAPE]
 
     def game(self):
-        mouspos = pygame.mouse.get_pos()
-        pygame.display.blit(self.map)
+        mousepos = pygame.mouse.get_pos()
+        self.win.blit(self.map)
 
         self.flip()
         return mousepos
@@ -105,6 +108,15 @@ class Displayer:
             with open("data/json/options.json","w") as f:
                 f.write(json.dumps(self.opt))
 
+    def flip(self):
+        """ used in button_menu """
+        pygame.display.flip()
+
+    def tick(self,t=None):
+        """ used in loops """
+        if t is None: t  = self.opt["FPS"]
+        pygame.time.Clock().tick(t)
+
     def centerx(self,surf,y=0):
         width = pygame.display.Info().current_w
         sx = surf.get_width()
@@ -114,14 +126,11 @@ class Displayer:
         for b in self.buttons:
             b.display()
 
-    def filp(self):
-        """ used in button_menu """
-        pygame.display.flip()
-
-    def tick(self,t=None):
-        """ used in loops """
-        if t is None: t  = self.opt["FPS"]
-        pygame.time.Clock().tick(t)
+    def display_menu(self):
+        self.win.blit(self.img["bg"],(0,0))
+        self.centerx(self.img["Riskwizou"],10)
+        self.display_buttons()
+        self.flip()
 
     def set_str(self,d):
         self.dict_str = d

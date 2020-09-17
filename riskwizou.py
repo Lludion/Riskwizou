@@ -258,6 +258,7 @@ class Country(ConsoleCountry):
         while turn:
             d.tick()
             if d.key_esc():
+                print("dkesc",d.key_esc())
                 turn = False
                 self.g.ended = True
 
