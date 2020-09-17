@@ -45,10 +45,13 @@ class Almighty:
         self.play_game()
 
     def pf(self,k,*args,**kwargs):
-        T(self.d.win,str(k),50,100,200,200,200)# temporary, will be improved
-        # with offsets described in self.toffset
+        T(self.d.win,str(k),0,0+self.toffset,200,200,200,center=False)# temporary, will be improved
+        # with offsets described in self.toffset, and a nice buffer and background
+        self.toffset+=20
+        self.d.flip()
 
     def begin_game(self,w=earth,p=players,dut=default_unit_types):
+        self.toffset = 0
         self.g = DGame(self.pf,w)
         self.setgdpipe() # now that the game is created
         self.g.set_p(p)
