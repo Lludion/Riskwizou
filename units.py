@@ -31,12 +31,18 @@ class Unit(Printable):
                 raise FutureWarning("A check for foreigners in Unit.move saw an unexpected result.")
             else: #arriving on an empty territory
                 self.z.remove(self)
+                ancientz = self.z
                 self.z = z
                 self.pm -= 1
                 print(z,z.owner)
                 z.owner = self.owner
                 z.troops.append(self)
                 print(z,z.owner)
+                if ancientz.troops == []:
+                    ancientz.owner = None
+                    if self.owner.capital == ancientz:
+                        self.owner.capital = None
+                        self.owner.new_capital()
 
     def attack(self):
         self.has_attacked = True
@@ -75,10 +81,17 @@ class Unit(Printable):
         print( self.__class__.__name__+"{"+self.name+"}\n"+str(self.d)+"D,"+str(self.pm)+"PM/"+str(self.pmmax)+"PMMAX[In "+str(self.z)+"]\n" )
 
     def dies(self):
+        ancientz = self.z
         self.z.remove(self)
         self.z = None
+
+        if ancientz.troops == [] and self.owner.capital is ancientz:
+            self.owner.capital = None
+            self.owner.new_capital()
+
         self.owner.remove(self)
         self.owner = None
+
         del self
 
 class Soldier(Unit):

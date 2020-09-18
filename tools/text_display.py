@@ -13,4 +13,5 @@ def T(cw,txt,x,y,r=0,g=0,b=0,aliasing=1,size=20,center=True):
 	else:
 		textpos = (x,y)
 	cw.blit(text, textpos)
+	return x,x+text.get_width(),y,y+text.get_height()
 

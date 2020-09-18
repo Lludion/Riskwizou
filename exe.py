@@ -14,6 +14,7 @@ class Almighty:
             self.dict_str = json.load(read_file)
         self.d = Displayer()
         self.d.set_str(self.dict_str)
+        self.player_otm = None # on this machine
 
     def menu(self):
         menureturn = 0
@@ -55,10 +56,15 @@ class Almighty:
         self.g = DGame(self.pf,w)
         self.setgdpipe() # now that the game is created
         self.g.set_p(p)
+        # WILL BE CHANGED : YOU HAVE TO CHOOSE YOUR PLAYER
+        self.player_otm = p[0]
+        self.d.player_otm = self.player_otm
+        # TODO
         self.g.dut = dut
         self.g.dstr = self.dstr
         self.g.begin()
         self.d.setmap(w.map)
+        w.init_boxes()
 
     def play_game(self):
         while not self.g.ended:

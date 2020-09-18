@@ -1,4 +1,4 @@
-from random import randint
+from random import randint,choice
 from tools.printable import Printable
 from tools.list import purify
 from tools.defeat import defeat
@@ -13,6 +13,18 @@ class Zone(Printable) :
         self.cont = c
         self.troops = []
         self.owner = None #Country
+        self.boxes = []
+    
+    def ab(self,xm,xM,ym,yM):
+        """add box"""
+        self.boxes.append((xm,xM,ym,yM))
+    
+    def center(self):
+        """ returns a tuple of pixels in the size of the real map (usually 4000x2640)"""
+        if self.boxes:
+            return (self.boxes[0][0]+self.boxes[0][1])//2,(self.boxes[0][2]+self.boxes[0][3])//2
+        else:
+            return 0,0
         
     def ntroops(self):
         return len(self.troops)
@@ -105,6 +117,9 @@ class World(Printable):
         self.continents = c
         self.map = ""
     
+    def init_boxes(self):
+        szone((-1,-1),self) # initializing the boxes
+    
     def setmap(self,map):
         self.map = map
 
@@ -132,6 +147,15 @@ class ConsoleCountry(Printable):
         self.g = None # game
         self.w = None # world
         self.graphical = False #is a Console Country
+        self.capital = None
+    
+    def new_capital(self):
+        if self.capital is None:
+            self.capital = choice(self.units).z
+        elif self.capital.owner != self:
+            self.capital.owner = self
+        else:
+            raise FutureWarning("Called new_capital without any reason, the capital is already : " + str(self.capital) + ", owned by " + str(self))
     
     def choose_units(self):
         
@@ -176,52 +200,57 @@ class ConsoleCountry(Printable):
                 turn = False
             else:
                 chosen,gofrom = self.choose_units()
-                if chosen:
-                    print("Where do you want to go?")
-                    for i in range(len(gofrom.adj)):
-                        print(str(i)+" : "+str(gofrom.adj[i]),"(",gofrom.adj[i].nforeign(self),"foreigners)")
-                    try:
-                        i = int(input("Entrer le numero de la destination:"))
-                    except ValueError:
-                        i = -1 # to always enter the loop
-                    finally:
-                        while i != i % len(gofrom.adj):
-                            try:
-                                i = int(input("Entrer le numero de la destination (<"+str(len(gofrom.adj))+"):"))
-                            except ValueError:
-                                i = -1 # to always re-enter the loop
-                        dest = gofrom.adj[i]
-                        if dest.nforeign(self):
-                            # diplomacy will be implemented later
-                            print("Attackers :")
-                            atkscore = 0
-                            for u in chosen:
-                                atk = u.attack()
-                                atkscore += atk
-                            print("Total : ",atkscore)
-                            
-                            print("Defenders :")
-                            defscore = 0
-                            for u in dest.troops: # all foreign units are attacked
-                                atk = u.attack()
-                                defscore += atk
-                            print("Total : ",defscore)
-                            
-                            if atkscore <= defscore:
-                                print("defenders win !")
-                                defeat(chosen)
-                            else:
-                                print("attackers win !")
-                                defeat(dest.troops,"no") # all troops are killed
-                                for u in chosen:
-                                    u.move(dest)
-
-                        else:
-                            for u in chosen:
-                                u.move(dest)
-                else:
-                    print("No Units selected.")
+                self.move_units(chosen,gofrom)
         
+    def move_units(self,chosen,gofrom):
+        if chosen:
+            print("Where do you want to go?")
+            for i in range(len(gofrom.adj)):
+                print(str(i)+" : "+str(gofrom.adj[i]),"(",gofrom.adj[i].nforeign(self),"foreigners)")
+            try:
+                i = int(input("Entrer le numero de la destination:"))
+            except ValueError:
+                i = -1 # to always enter the loop
+            finally:
+                while i != i % len(gofrom.adj):
+                    try:
+                        i = int(input("Entrer le numero de la destination (<"+str(len(gofrom.adj))+"):"))
+                    except ValueError:
+                        i = -1 # to always re-enter the loop
+                dest = gofrom.adj[i]
+                self.units_arrival(chosen,dest)
+        else:
+            print("No Units selected.")
+    
+    def units_arrival(self,chosen,dest):
+        if dest.nforeign(self):
+            # diplomacy will be implemented later
+            print("Attackers :")
+            atkscore = 0
+            for u in chosen:
+                atk = u.attack()
+                atkscore += atk
+            print("Total : ",atkscore)
+            
+            print("Defenders :")
+            defscore = 0
+            for u in dest.troops: # all foreign units are attacked
+                atk = u.attack()
+                defscore += atk
+            print("Total : ",defscore)
+            
+            if atkscore <= defscore:
+                print("defenders win !")
+                defeat(chosen)
+            else:
+                print("attackers win !")
+                defeat(dest.troops,"no") # all troops are killed
+                for u in chosen:
+                    u.move(dest)
+
+        else:
+            for u in chosen:
+                u.move(dest)
     
     def attack(self, units, enemy):
         if units != []:
@@ -251,21 +280,34 @@ class Country(ConsoleCountry):
         It manages the several steps of unit selection.
         1) zone selection
         2) unit selection within the zone """
-        if self.cu_step == 0:
+        if self.cu_step == 0:#choosing a zone
             if d.flclic():
                 z = szone(mp,self.w)
                 if z is not None:
                     print("z",z)
                     self.cu_step = 1
                     self.cu_zone = z
-        elif self.cu_step == 1:
-            # print("bruh")
+                else:
+                    self.cu_zone = None
+        elif self.cu_step == 1:#choosing the units
+            print("1")
             d.zonebox(self.cu_zone)
-            if d.flclic():
-                self.cu_step = 2
+            self.cu_step = d.clicked_on_unit(self.cu_zone)
+        elif self.cu_step == 2:#choosing the zone where you want to move
+            print("2")
+            assert d.selectedunits[0].z == self.cu_zone
+            self.move_units(d.selectedunits,self.cu_zone,mp,d)
         else:
+            print("omegapharma",self.cu_step)
+            d.selectedunits = []
+            d.printedunits = []
             self.action = ""
             self.cu_step = 0
+    
+    def move_units(self,chosen,gofrom,mp,d):
+        if d.flclic():
+            self.units_arrival(chosen,szone(mp,self.w))
+            self.cu_step = -1
     
     def turn(self,d):
         """
@@ -280,6 +322,7 @@ class Country(ConsoleCountry):
             if self.action == "choose_units":
                 self.choose_units(mp,d)
             else:
+                d.zonebox(self.cu_zone)
                 for event in d.pygame.event.get():
                     if event.type == d.pygame.KEYDOWN:
                         if event.key == d.pygame.K_ESCAPE:
@@ -289,6 +332,8 @@ class Country(ConsoleCountry):
                             turn = False                            
                         if event.key == d.pygame.K_c:
                             self.action = "choose_units"
+                    if event.type == d.pygame.MOUSEBUTTONDOWN:
+                        self.cu_zone = szone(mp,self.w)
 
 class Player(Printable):
     

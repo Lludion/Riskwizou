@@ -9,5 +9,6 @@
 "btn1HD": "btn/button_menu1HD.png",
 "btn1H": "btn/button_menu1H.png",
 "lock": "btn/locked_layer.png",
-"box": "bg/box.png"
+"box": "bg/box.png",
+"star": "details/star.png"
 }

@@ -2,6 +2,8 @@ import pygame
 from collections import defaultdict
 from math import floor
 from engine.buttonMenu import *
+from tools import selection
+from tools.list import fullpm
 
 def s(t): return pygame.time.wait(floor(t * 1000))
 # do not use time.sleep() - return should be useless.
@@ -15,6 +17,8 @@ class Displayer:
         self.load_images()
         self.load_options()
         self.launch_display()
+        self.printedunits = []
+        self.selectedunits = []
 
     def load_images(self):
         with open("data/img/img.json", "r", encoding="utf-8-sig") as read_file:
@@ -110,11 +114,30 @@ class Displayer:
         self.tick()
         self.flip()
         self.win.blit(self.map,(0,0))
+        self.classicbox()
+        self.owncircles()
         mousepos = pygame.mouse.get_pos()
         return self.correctmouse(mousepos)
 
+    def czc(self,z):
+        """ correct zone center of a zone
+        (knowing the real size of the map on screen)"""
+        return self.incorrectmouse(z.center())
+
+    def owncircles(self):
+        """ draws circles on provinces according to their owner """
+        for c in self.g.w.continents:
+            for z in c.zones:
+                if z.owner is not None:
+                    pygame.draw.circle(self.win,z.owner.color,self.czc(z),10)
+                    if z.owner.capital is z:
+                        self.win.blit(pygame.transform.scale(self.img["star"], (10,10)), self.czc(z))
+
     def correctmouse(self,mouse):
         return mouse[0]*4000//self.mapx,mouse[1]*2640//self.mapy
+
+    def incorrectmouse(self,mouse):
+        return mouse[0]*self.mapx//4000,mouse[1]*self.mapy//2640
 
     def test_screen(self):
         """ Tests if the user's screen is large enough """
@@ -151,28 +174,85 @@ class Displayer:
         self.display_buttons()
         self.flip()
 
-    def zonebox(self,z):
+    def display_box(self):
         h = self.win.get_height()
         fw = self.img["box"].get_width()
         fh = h - self.img["box"].get_height()
         self.win.blit(self.img["box"], (0,fh))
-        T(self.win,self.dstr(z.name),20,fh+5,255,255,255,center=False,size=25)
-        if z.troops:
-            own = z.troops[0].owner
-            if own is None:
-                c1 = c2 = c3 = 125
-                ownname = self.dstr("independent")
-            else:
-                c1 = own.color[0]
-                c2 = own.color[1]
-                c3 = own.color[2]
-                ownname = self.dstr(own.name)
-            for i in range(len(self.g.dut)):
-                u = self.g.dut[i]
-                T(self.win,self.dstr(u().name)+" : "+str(len([x for x in z.troops if x.name == u().name])),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
-            T(self.win,ownname,fw-2-len(ownname)*8,fh+10,c1,c2,c3,center=False)
+        return fw,fh
+
+    def classicbox(self):
+        fw,fh =  self.display_box()
+        T(self.win,self.dstr(self.player_otm.name),20,fh+5,0,0,0,center = False,size=25)
+
+    def zonebox(self,z=None):
+        if z is None:
+            self.classicbox()
         else:
-            T(self.win,self.dstr("independent"),fw-2-len(self.dstr("independent"))*8,fh+10,255,200,200,center=False)
+            fw,fh = self.display_box()
+            if z.troops:
+                own = z.troops[0].owner
+                if own is None:
+                    c1 = c2 = c3 = 165
+                    ownname = self.dstr("independent")
+                else:
+                    c1 = own.color[0]
+                    c2 = own.color[1]
+                    c3 = own.color[2]
+                    ownname = self.dstr(own.name)
+
+                self.printedunits = []
+                for i in range(len(self.g.dut)):
+                    u = self.g.dut[i]
+
+                    if fullpm(u,z):#if exists a full pm unit:
+                        tau = fullpm(u,z)[0]
+                        a1,a2,a3,a4 = T(self.win,self.dstr(u().name)+" : "+str(len(fullpm(u,z))),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+                        self.printedunits.append((a1,a2,a3,a4,tau))
+
+                    for x in z.troops:
+                        if x.pm != x.pmmax and x.name == u().name:
+                            a1,a2,a3,a4 = T(self.win,self.dstr(u().name) + " " + str(x.pm) + "/" + str(x.pmmax)  + " : "+str(len([y for y in z.troops if y.name == x.name and y.pm == x.pm])),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+                            self.printedunits.append((a1,a2,a3,a4,x))
+
+                if self.selectedunits:
+                    T(self.win,str(len(self.selectedunits)) + self.dstr("selected"),24,fh+30+28*len(self.g.dut),c1,c2,c3,center=False,size=30)
+            else:
+                c1 = c2 = c3 = 65
+                ownname = self.dstr("independent")
+                T(self.win,self.dstr("notroops"),24,fh+30,c1,c2,c3,center=False,size=30)
+                #T(self.win,self.dstr("independent"),fw-2-len(self.dstr("independent"))*8,fh+10,255,200,200,center=False)
+            _,x,_,_ = T(self.win,self.dstr(z.name),20,fh+5,205,205,205,center=False,size=25)
+            _,x,_,_ = T(self.win," - ",x,fh+5,205,205,205,center=False,size=25)
+            _,x,_,_ = T(self.win,ownname,x,fh+5,c1,c2,c3,center=False,size=25)
+            if z.owner:
+                if z.owner.capital is z:
+                    self.win.blit(pygame.transform.scale(self.img["star"],(40,40)), (x , fh - 15))
+
+    def clicked_on_unit(self,z):
+        """ used when clicking on units to select them """
+        if [x for x in z.troops if x.owner == self.g.playingnow]: # nodiplomacy
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    print("don PERDRI")
+                    mx,my = pygame.mouse.get_pos()
+                    for (xm,xM,ym,yM,u) in self.printedunits:
+                        if selection.box(xm,mx,xM,ym,my,yM):
+                            print("aHA!!")
+                            self.selectedunits.append(u)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_g:
+                        if self.selectedunits: # units have been selected
+                            print("GOGOGO!")
+                            return 2
+                        else:
+                            return -1
+                    if event.key == pygame.K_q:
+                        print("quit!")
+                        return -1
+            return 1
+        else: # no units selectable
+            return -1
 
     def set_str(self,d):
         self.dict_str = d

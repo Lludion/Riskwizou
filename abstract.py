@@ -11,6 +11,7 @@ class Game:
         self.graphical = False
         self.ended = False
         self.s = print # show function is print by default
+        self.playingnow =None
 
     def set_p(self,players):
         """ given a set of players, sets self.p and self.c (players and countries) """
@@ -50,9 +51,12 @@ class Game:
                 szs.append(startzone)
                 for i in (0,1,2):
                     startzone.add_troop(self.dut[i],c)
+                    c.capital = startzone
+                    startzone.owner = c
 
     def turn(self):
         for c in self.c:
+            self.playingnow = c
             c.turn()
             if self.ended:
                 return
@@ -66,6 +70,7 @@ class DGame(Game):
     def turn(self):
         """ the c must be Countries and not ConsoleCountries """
         for c in self.c:
+            self.playingnow = c
             c.turn(self.d)
             if self.ended:
                 return

@@ -95,5 +95,5 @@ def create_earth():
 earth = create_earth()
 blue = Country("blue", (10,0,150))
 red = Country("red", (150,10,0))
-players = [Player("blue",[blue]), Player("red",[red])]
+players = [Player("Bluka",[blue]), Player("Redna",[red])]
 

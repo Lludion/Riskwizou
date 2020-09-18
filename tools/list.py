@@ -16,3 +16,6 @@ def forall(f,L):
     for e in L:
         v &= f(e)
     return v
+
+def fullpm(u,z):
+    return [x for x in z.troops if x.name == u().name and x.pm == x.pmmax]
