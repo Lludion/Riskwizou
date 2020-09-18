@@ -2,6 +2,7 @@ from random import randint
 from tools.printable import Printable
 from tools.list import purify
 from tools.defeat import defeat
+from tools.selection import szone
 
 class Zone(Printable) :
 
@@ -102,6 +103,10 @@ class World(Printable):
         for x in c:
             x.w = self
         self.continents = c
+        self.map = ""
+    
+    def setmap(self,map):
+        self.map = map
 
     def __getitem__(self, item):
         for z in self.continents:
@@ -239,28 +244,38 @@ class Country(ConsoleCountry):
         self.graphical = True #is a Graphical Country
         self.cu_step = 0
 
-    def choose_units(self):
+    def choose_units(self,mp):
         """ This function is used when m is being pressed. 
         It manages the several steps of unit selection.
         1) zone selection
         2) unit selection within the zone """
         if self.cu_step == 0:
-            pass
+            z = szone(mp,self.w)
     
     def turn(self,d):
         """
         d is the displayer that will be used
         """
-        print("Turn of "+self.name)
+        self.g.s("Turn of "+self.name)
         turn = True
         for u in self.units:
             u.pm = u.pmmax # restoring pm
         while turn:
             d.tick()
-            if d.key_esc():
-                print("dkesc",d.key_esc())
-                turn = False
-                self.g.ended = True
+            mp = d.game()
+            if self.action == "choose_units":
+                self.choose_units()
+            else:
+                if d.key_esc():
+                    print("dkesc",d.key_esc())
+                    turn = False
+                    self.g.ended = True
+                elif d.key_e():
+                    print("dk-e",d.key_e())
+                    turn = False
+                elif d.key_m():
+                    print("dk-m",d.key_m())
+                    self.action = "choose_units"
 
 class Player(Printable):
     

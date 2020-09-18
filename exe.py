@@ -47,7 +47,7 @@ class Almighty:
     def pf(self,k,*args,**kwargs):
         T(self.d.win,str(k),0,0+self.toffset,200,200,200,center=False)# temporary, will be improved
         # with offsets described in self.toffset, and a nice buffer and background
-        self.toffset+=20
+        self.toffset = (self.toffset + 20) % 1000
         self.d.flip()
 
     def begin_game(self,w=earth,p=players,dut=default_unit_types):
@@ -58,6 +58,7 @@ class Almighty:
         self.g.dut = dut
         self.g.dstr = self.dstr
         self.g.begin()
+        self.d.setmap(w.map)
 
     def play_game(self):
         while not self.g.ended:

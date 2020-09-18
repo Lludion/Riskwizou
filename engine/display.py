@@ -69,7 +69,17 @@ class Displayer:
         return LAUNCHGAME
 
     def setmap(self,map):
-        self.map = self.img["map"]
+        self.map = self.img[map]
+        w = self.win.get_width()
+        h = self.win.get_height()
+        if w/h >= 4000/2640:
+            self.map = pygame.transform.scale(self.map, (w,2640*w//4000))
+            self.mapx = w
+            self.mapy = 2640*w//4000
+        else:
+            self.map = pygame.transform.scale(self.map, (4000*h//2640,h))
+            self.mapx = 4000*h//2640
+            self.mapy = h
 
     def mouse(self):
         return pygame.mouse.get_pos()
@@ -80,11 +90,16 @@ class Displayer:
     def k_events(self):
         return [event for event in pygame.event.get() if event.type == pygame.KEYDOWN]
 
-    def key_m(self):
+    def key_pm(self):
+        """ true if m is down """
         return self.keys()[pygame.K_m]
 
     def key_e(self):
-        return self.keys()[pygame.K_e]
+        """ true if e is going down """
+        return [] != [a for a in self.k_events() if a.key == pygame.K_e]
+
+    def key_m(self):
+        return [] != [a for a in self.k_events() if a.key == pygame.K_m]
 
     def key_esc(self):
         return [] != [a for a in self.k_events() if a.key == pygame.K_ESCAPE]
@@ -92,10 +107,13 @@ class Displayer:
 
     def game(self):
         mousepos = pygame.mouse.get_pos()
-        self.win.blit(self.map)
+        self.win.blit(self.map,(0,0))
 
         self.flip()
-        return mousepos
+        return self.correctmouse(mousepos)
+
+    def correctmouse(self,mouse):
+        return mouse[0]*4000//mapx,mouse[1]*2640//mapy
 
     def test_screen(self):
         """ Tests if the user's screen is large enough """
