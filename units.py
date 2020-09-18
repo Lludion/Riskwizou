@@ -83,22 +83,22 @@ class Unit(Printable):
 
 class Soldier(Unit):
 
-    def __init__(self,z,own):
+    def __init__(self,z=None,own=None):
         super().__init__("soldier",1,1,1,z,own)
 
 class Cavalry(Unit):
 
-    def __init__(self,z,c):
+    def __init__(self,z=None,c=None):
         super().__init__("cavalry",2,1,2,z,c)
 
 class Cannon(Unit):
 
-    def __init__(self,z,c):
+    def __init__(self,z=None,c=None):
         super().__init__("cannon",1,2,2,z,c)
 
 class Horde(Unit):
 
-    def __init__(self,z,c):
+    def __init__(self,z=None,c=None):
         super().__init__("horde",3,1,2,z,c,1)
 
 default_unit_types = (Soldier,Cavalry,Cannon)

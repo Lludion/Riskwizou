@@ -15,7 +15,7 @@
 "groenland": "Groenland",
 "iceland": "Islande",
 "greatbritain": "Grande-Bretagne",
-"scandinavie": "Scandinavie",
+"scandinavia": "Scandinavie",
 "ukraine": "Ukraine",
 "north": "Europe du Nord",
 "south": "Europe du Sud",
@@ -56,5 +56,8 @@
 "cavalry": "Cavalier",
 "cannon": "Canon",
 "horde": "Horde",
-"launchgame": "Jouer"
+"launchgame": "Jouer",
+"independent": "Indépendant",
+"blue": "Bleu",
+"red": "Rouge"
 }

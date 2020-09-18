@@ -11,6 +11,7 @@ class Displayer:
     def __init__(self):
         self.dict_str={} # to be changed
         pygame.init()
+        self.pygame = pygame
         self.load_images()
         self.load_options()
         self.launch_display()
@@ -50,7 +51,7 @@ class Displayer:
     def main_menu(self):
         print("Menu")
         # self.centerx(self.img["btn1"],200)
-        pygame.time.Clock().tick(self.opt["FPS"])
+        self.tick()
         keys = pygame.key.get_pressed()
         LAUNCHGAME = 0
         pos = pygame.mouse.get_pos()
@@ -73,13 +74,17 @@ class Displayer:
         w = self.win.get_width()
         h = self.win.get_height()
         if w/h >= 4000/2640:
-            self.map = pygame.transform.scale(self.map, (w,2640*w//4000))
-            self.mapx = w
-            self.mapy = 2640*w//4000
-        else:
             self.map = pygame.transform.scale(self.map, (4000*h//2640,h))
             self.mapx = 4000*h//2640
             self.mapy = h
+        else:
+            self.map = pygame.transform.scale(self.map, (w,2640*w//4000))
+            self.mapx = w
+            self.mapy = 2640*w//4000
+
+        # changing the size of boxes
+        self.boxl = self.mapy //3
+        self.img["box"] = pygame.transform.scale(self.img["box"], (self.boxl,self.boxl))
 
     def mouse(self):
         return pygame.mouse.get_pos()
@@ -90,30 +95,26 @@ class Displayer:
     def k_events(self):
         return [event for event in pygame.event.get() if event.type == pygame.KEYDOWN]
 
-    def key_pm(self):
+    def flclic(self):
+        """ flushes the received events and checks for a mousebuttonsdown"""
+        return [event for event in pygame.event.get() if event.type == pygame.MOUSEBUTTONDOWN]
+
+    def clic(self,btn = 0):
+        return pygame.mouse.get_pressed()[btn]
+
+    def key_m(self):
         """ true if m is down """
         return self.keys()[pygame.K_m]
 
-    def key_e(self):
-        """ true if e is going down """
-        return [] != [a for a in self.k_events() if a.key == pygame.K_e]
-
-    def key_m(self):
-        return [] != [a for a in self.k_events() if a.key == pygame.K_m]
-
-    def key_esc(self):
-        return [] != [a for a in self.k_events() if a.key == pygame.K_ESCAPE]
-        #return self.keys()[pygame.K_ESCAPE]
-
     def game(self):
-        mousepos = pygame.mouse.get_pos()
-        self.win.blit(self.map,(0,0))
-
+        self.tick()
         self.flip()
+        self.win.blit(self.map,(0,0))
+        mousepos = pygame.mouse.get_pos()
         return self.correctmouse(mousepos)
 
     def correctmouse(self,mouse):
-        return mouse[0]*4000//mapx,mouse[1]*2640//mapy
+        return mouse[0]*4000//self.mapx,mouse[1]*2640//self.mapy
 
     def test_screen(self):
         """ Tests if the user's screen is large enough """
@@ -149,6 +150,29 @@ class Displayer:
         self.centerx(self.img["Riskwizou"],10)
         self.display_buttons()
         self.flip()
+
+    def zonebox(self,z):
+        h = self.win.get_height()
+        fw = self.img["box"].get_width()
+        fh = h - self.img["box"].get_height()
+        self.win.blit(self.img["box"], (0,fh))
+        T(self.win,self.dstr(z.name),20,fh+5,255,255,255,center=False,size=25)
+        if z.troops:
+            own = z.troops[0].owner
+            if own is None:
+                c1 = c2 = c3 = 125
+                ownname = self.dstr("independent")
+            else:
+                c1 = own.color[0]
+                c2 = own.color[1]
+                c3 = own.color[2]
+                ownname = self.dstr(own.name)
+            for i in range(len(self.g.dut)):
+                u = self.g.dut[i]
+                T(self.win,self.dstr(u().name)+" : "+str(len([x for x in z.troops if x.name == u().name])),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+            T(self.win,ownname,fw-2-len(ownname)*8,fh+10,c1,c2,c3,center=False)
+        else:
+            T(self.win,self.dstr("independent"),fw-2-len(self.dstr("independent"))*8,fh+10,255,200,200,center=False)
 
     def set_str(self,d):
         self.dict_str = d

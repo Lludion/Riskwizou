@@ -21,7 +21,7 @@ def szone(mp,w):
         return w["nunavut"]
     if b(400,738,500,783):
         return w["alberta"]
-    if b(742,997,512,782)
+    if b(742,997,512,782):
         return w["ontario"]
     if b(995,1314,486,869):
         return w["quebec"]

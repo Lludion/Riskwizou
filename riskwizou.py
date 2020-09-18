@@ -243,14 +243,29 @@ class Country(ConsoleCountry):
         super().__init__(n,c)
         self.graphical = True #is a Graphical Country
         self.cu_step = 0
+        self.cu_zone = None
+        self.action = ''
 
-    def choose_units(self,mp):
+    def choose_units(self,mp,d):
         """ This function is used when m is being pressed. 
         It manages the several steps of unit selection.
         1) zone selection
         2) unit selection within the zone """
         if self.cu_step == 0:
-            z = szone(mp,self.w)
+            if d.flclic():
+                z = szone(mp,self.w)
+                if z is not None:
+                    print("z",z)
+                    self.cu_step = 1
+                    self.cu_zone = z
+        elif self.cu_step == 1:
+            # print("bruh")
+            d.zonebox(self.cu_zone)
+            if d.flclic():
+                self.cu_step = 2
+        else:
+            self.action = ""
+            self.cu_step = 0
     
     def turn(self,d):
         """
@@ -261,21 +276,19 @@ class Country(ConsoleCountry):
         for u in self.units:
             u.pm = u.pmmax # restoring pm
         while turn:
-            d.tick()
             mp = d.game()
             if self.action == "choose_units":
-                self.choose_units()
+                self.choose_units(mp,d)
             else:
-                if d.key_esc():
-                    print("dkesc",d.key_esc())
-                    turn = False
-                    self.g.ended = True
-                elif d.key_e():
-                    print("dk-e",d.key_e())
-                    turn = False
-                elif d.key_m():
-                    print("dk-m",d.key_m())
-                    self.action = "choose_units"
+                for event in d.pygame.event.get():
+                    if event.type == d.pygame.KEYDOWN:
+                        if event.key == d.pygame.K_ESCAPE:
+                            turn = False
+                            self.g.ended = True
+                        if event.key == d.pygame.K_e:
+                            turn = False                            
+                        if event.key == d.pygame.K_c:
+                            self.action = "choose_units"
 
 class Player(Printable):
     
