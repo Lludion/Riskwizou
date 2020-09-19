@@ -60,5 +60,13 @@
 "independent": "Independent",
 "blue": "Blue",
 "red": "Red",
-"notroops": "No troops."
+"notroops": "No troops.",
+"moving": "Moving",
+"defenderchoice": "Choosing the defenders",
+"select": "Select",
+"gvictory": "gvictory",
+"gdefeat": "gdefeat",
+"did": "did"",
+"defender": "Defender",
+"attacker": "Attacker"
 }

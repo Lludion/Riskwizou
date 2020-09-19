@@ -1,6 +1,6 @@
 from abstract import DGame,Game,Networker
 from engine.display import Displayer
-from earth import earth,players
+from earth import earth,create_earth,players
 from tools.text_display import T
 from units import default_unit_types
 import json
@@ -42,7 +42,7 @@ class Almighty:
             pass
 
     def launch_game(self):
-        self.begin_game()
+        self.begin_game(create_earth())
         self.play_game()
 
     def pf(self,k,*args,**kwargs):
@@ -69,6 +69,7 @@ class Almighty:
     def play_game(self):
         while not self.g.ended:
             self.g.turn()
+        del self.g
 
     def dstr(self,char):
         """ Try to find if dict_str contains a value for the key 'char'.

@@ -24,30 +24,40 @@ class Unit(Printable):
 
     def move(self, z):
         if self.pm > 0:
-            print("Troops number in",z,z.ntroops())
-            if z.nforeign(self.owner):
-                # This is not the place where to check this, as we attack
-                # in large numbers !
-                raise FutureWarning("A check for foreigners in Unit.move saw an unexpected result.")
-            else: #arriving on an empty territory
-                self.z.remove(self)
-                ancientz = self.z
-                self.z = z
-                self.pm -= 1
-                print(z,z.owner)
-                z.owner = self.owner
-                z.troops.append(self)
-                print(z,z.owner)
-                if ancientz.troops == []:
-                    ancientz.owner = None
-                    if self.owner.capital == ancientz:
-                        self.owner.capital = None
-                        self.owner.new_capital()
+            if z in self.z.adj:
+                print("Troops number in",z,z.ntroops())
+                if z.nforeign(self.owner):
+                    # This is not the place where to check this, as we attack
+                    # in large numbers !
+                    raise FutureWarning("A check for foreigners in Unit.move saw an unexpected result.")
+                else: #arriving on an empty territory
+                    self.z.remove(self)
+                    ancientz = self.z
+                    self.z = z
+                    self.pm -= 1
+                    print(z,z.owner)
+                    z.owner = self.owner
+                    z.troops.append(self)
+                    print(z,z.owner)
+                    if ancientz.troops == []:
+                        ancientz.owner = None
+                        if self.owner.capital == ancientz:
+                            self.owner.capital = None
+                            self.owner.new_capital()
+            else:
+                print("Too far.")
 
-    def attack(self):
+    def attack(self,d=None,j=0,xoff=0):
+        if d is None:
+            class toto:
+                def dstr(slf,x):
+                    return x
+                def display_dice(slf,x,y):
+                    return
+            d = toto()
         self.has_attacked = True
         scores = []
-        txt = str(self) + " did "
+        txt = d.dstr(self.name) + " " + d.dstr("did") + " "
         for i in  range(self.d):
             if i:
                 txt += "+ "
@@ -59,12 +69,21 @@ class Unit(Printable):
             txt += "(=" + str(sum(scores) +  self.boosto) + ") "
         txt += "!"
         print(txt)
-        return sum(scores) +  self.boosto
+        j += 1
+        d.display_dice(txt,j,xoff)
+        return sum(scores) +  self.boosto,j
 
-    def defend(self):
+    def defend(self,d=None,j=0):
+        if d is None:
+            class toto:
+                def dstr(slf,x):
+                    return x
+                def display_dice(slf,x,y):
+                    return
+            d = toto()
         scores = []
-        txt = str(self) + " did "
-        for i in  range(self.d):
+        txt = d.dstr(self.name) + " " + d.dstr("did") + " "
+        for i in range(self.d):
             if i:
                 txt += "+ "
             scores.append(randint(1,6))
@@ -72,10 +91,12 @@ class Unit(Printable):
         if  self.boostd:
             txt += "+ 1 (boost)"
         if len(scores) >= 2:
-            txt += "(=" + str(sum(scores) +  self.boosto) + ") "
+            txt += "(=" + str(sum(scores) +  self.boostd) + ") "
         txt += "!"
         print(txt)
-        return sum(scores) + self.boostd
+        j += 1
+        d.display_dice(txt,j)
+        return sum(scores) + self.boostd,j
 
     def info(self):
         print( self.__class__.__name__+"{"+self.name+"}\n"+str(self.d)+"D,"+str(self.pm)+"PM/"+str(self.pmmax)+"PMMAX[In "+str(self.z)+"]\n" )

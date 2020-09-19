@@ -5,6 +5,8 @@ from engine.buttonMenu import *
 from tools import selection
 from tools.list import fullpm
 from tools.misc import colorname
+from tools.text_display import textinabox,textimg
+from tools.option import Option
 from random import choice
 
 def s(t): return pygame.time.wait(floor(t * 1000))
@@ -21,6 +23,7 @@ class Displayer:
         self.launch_display()
         self.printedunits = []
         self.selectedunits = []
+        self.buffer = []
 
     def load_images(self):
         with open("data/img/img.json", "r", encoding="utf-8-sig") as read_file:
@@ -120,6 +123,7 @@ class Displayer:
         self.win.blit(self.map,(0,0))
         self.classicbox()
         self.owncircles()
+        self.manage_buffer()
         mousepos = pygame.mouse.get_pos()
         return self.correctmouse(mousepos)
 
@@ -163,7 +167,9 @@ class Displayer:
         if t is None: t  = self.opt["FPS"]
         pygame.time.Clock().tick(t)
 
-    def centerx(self,surf,y=0):
+    def centerx(self,surf,y=None):
+        if y is None:#centered in y as well
+            y = pygame.display.Info().current_h // 2 - surf.get_height() //2
         width = pygame.display.Info().current_w
         sx = surf.get_width()
         self.win.blit(surf,(width//2-sx//2,y))
@@ -189,15 +195,65 @@ class Displayer:
         fw,fh =  self.display_box()
         T(self.win,self.dstr(self.player_otm.name),20,fh+5,0,0,0,center = False,size=25)
 
-    def print_unit_i(self,i,z,c1,c2,c3,ownname,fh):
+    def __boxstr(self,px=0,py=0):
+        return str(self.img["box"].get_width()+px)+","+str(self.win.get_height() - self.img["box"].get_height() + py)
+
+    def display_fight(self,xoff=0):
+        if xoff is None:
+            atk = True
+            xoff = self.img["box"].get_width()
+        else:
+            atk = False
+        self.add_to_buffer(self.img["box"],self.__boxstr(xoff,0),200)
+        if atk:
+            self.add_to_buffer(textimg(self.dstr('attacker'),size=30),self.__boxstr(xoff),200)
+        else:# here usually xoff = 0
+            self.add_to_buffer(textimg(self.dstr('defender'),size=30),self.__boxstr(xoff),200)
+
+    def display_dice(self,msg,j,xoff=0):
+        if xoff is None:
+            xoff = self.img["box"].get_width()
+        j += 1
+        opt = self.__boxstr(30+xoff,30*j)
+        print("OPT",opt)
+        self.add_to_buffer(textimg(msg),opt,200)
+        return j
+
+    def announce(self,msg):
+        img = self.img[self.dstr(msg)]
+        self.add_to_buffer(img,"xy",100)
+
+    """ buffer functions """
+
+    def add_to_buffer(self,pic,opt,time):
+        self.buffer.append((pic,Option(opt),time))
+
+    def manage_buffer(self):
+        newb = [] # new buffer
+        for p,o,t in self.buffer:
+            t -= 1
+            if t >= 0:
+                newb.append((p,o,t))
+            if o.cx:
+                if o.cy:
+                    self.centerx(p)
+                else:
+                    self.centerx(p,o.y)
+            else:
+                self.win.blit(p, (o.x,o.y))
+        self.buffer = newb
+
+    """ unit selection and printing functions """
+
+    def print_unit_i(self,i,j,z,c1,c2,c3,ownname,fh):
         """ prints all the units of the type dut[i],
         regrouping them by remaining pm """
         u = self.g.dut[i]
 
         if fullpm(u,z):#if exists a full pm unit:
-            a1,a2,a3,a4 = T(self.win,self.dstr(u().name)+" : "+str(len(fullpm(u,z))),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+            j,a1,a2,a3,a4 = textinabox(j,self.win,self.dstr(u().name)+" : "+str(len(fullpm(u,z))),fh,c1,c2,c3)
 
-            # try to print no unit twice
+            # try to print no unit twice - useless ?
             TRIES = 0
             tau = fullpm(u,z)[TRIES]
             while tau in [x for (_,_,_,_,x) in self.printedunits] and TRIES < z.ntroops():
@@ -210,10 +266,13 @@ class Displayer:
 
         for x in z.troops:
             if x.pm != x.pmmax and x.name == u().name:
-                a1,a2,a3,a4 = T(self.win,self.dstr(u().name) + " " + str(x.pm) + "/" + str(x.pmmax)  + " : "+str(len([y for y in z.troops if y.name == x.name and y.pm == x.pm])),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+                j,a1,a2,a3,a4 = textinabox(j,self.win,self.dstr(u().name) + " " + str(x.pm) + "/" + str(x.pmmax)  + " : "+str(len([y for y in z.troops if y.name == x.name and y.pm == x.pm])),fh,c1,c2,c3)
                 self.printedunits.append((a1,a2,a3,a4,x))
 
-    def zonebox(self,z=None):
+        return j
+
+    def zonebox(self,z=None,text=[]):
+        """ display function """
         if z is None:
             self.classicbox()
         else:
@@ -222,10 +281,13 @@ class Displayer:
                 c1,c2,c3,ownname = colorname(self.dstr,z.troops[0].owner)
 
                 self.printedunits = []
+                j = -1 # j is the number of printed lines
                 for i in range(len(self.g.dut)):
-                    self.print_unit_i(i,z,c1,c2,c3,ownname,fh)
+                    j = self.print_unit_i(i,j,z,c1,c2,c3,ownname,fh)
                 if self.selectedunits:
-                    T(self.win,str(len(self.selectedunits)) + self.dstr("selected"),24,fh+30+28*len(self.g.dut),c1,c2,c3,center=False,size=30)
+                    j,_,_,_,_ = textinabox(j,self.win,str(len(self.selectedunits)) + self.dstr("selected"),fh,c1,c2,c3)
+                for texti in text:
+                    j,_,_,_,_ = textinabox(j,self.win,self.dstr(texti),fh,c1,c2,c3)
             else:
                 c1 = c2 = c3 = 65
                 ownname = self.dstr("independent")
@@ -287,6 +349,7 @@ class Displayer:
         else: # no units are selectable
             return -1
 
+    """ string functions """
 
     def set_str(self,d):
         self.dict_str = d
@@ -300,6 +363,8 @@ class Displayer:
             return self.dict_str[char]
         except KeyError:
             return char
+
+    """ destruction and scope related functions """
 
     def close(self):
         pygame.display.quit()

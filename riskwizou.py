@@ -236,14 +236,14 @@ class ConsoleCountry(Printable):
             print("Attackers :")
             atkscore = 0
             for u in chosen:
-                atk = u.attack()
+                atk,_ = u.attack()
                 atkscore += atk
             print("Total : ",atkscore)
             
             print("Defenders :") # the defender should now select its two troops
             defscore = 0
             for u in dest.troops: # all foreign units are attacked
-                atk = u.attack()
+                atk,_ = u.defend()
                 defscore += atk
             print("Total : ",defscore)
             
@@ -309,6 +309,7 @@ class Country(ConsoleCountry):
             self.cu_step = 3
         elif self.cu_step == 3:#choosing the zone where you want to move
             #print("cu3")
+            d.zonebox(self.cu_zone,["moving"])
             self.cu_step = self.move_units(self.selecta,self.cu_zone,mp,d)
         elif self.cu_step == 4:#choosing the defender's units
             self.cu_step = self.units_arrival(self.selecta,self.dest,d)
@@ -334,13 +335,11 @@ class Country(ConsoleCountry):
             if len(chosen) > self.w.natk:
                 self.g.s("Cannot attack with so many troops at once !")
                 return -1
-        
-            print("Defenders :") # the defender should now select its two troops
+            # the defender should now select its two troops
             if dest.ntroops() > self.w.ndef:
                 if len(d.selectedunits) < self.w.ndef:
                     # if a choice is possible and not everyone has been chosen:
-                    print("ZENBOX")
-                    d.zonebox(dest)
+                    d.zonebox(dest,["defenderchoice"])
                     arrivstep = d.select_units(dest)
                     if arrivstep == 2:
                         dtroops = d.selectedunits
@@ -353,26 +352,39 @@ class Country(ConsoleCountry):
                     
             else:
                 dtroops = dest.troops
+            d.display_fight()
+            print("Defenders :") 
             defscore = 0
-            for u in dtroops: # all foreign units are attacked
-                atk = u.attack()
+            j = 0
+            for u in dtroops: # the selected foreign units are attacked
+                atk,j = u.defend(d,j)
                 defscore += atk
             print("Total : ",defscore)
             
+            d.display_fight(None)
             print("Attackers :")
             atkscore = 0
+            j = 0
             for u in chosen:
-                atk = u.attack()
+                atk,j = u.attack(d,j,None)
                 atkscore += atk
             print("Total : ",atkscore)
         
             if atkscore <= defscore:
                 print("defenders win !")
                 defeat(chosen)
+                if d.player_otm == self.p:
+                    d.announce("gdefeat")
+                else:
+                    d.announce("gvictory")
             else:
                 print("attackers win !")
                 defeat(dtroops,"no") # all troops are killed
                 atkwin(dest,chosen)
+                if d.player_otm == self.p:
+                    d.announce("gvictory")
+                else:
+                    d.announce("gdefeat")
             return -1
 
         else:
