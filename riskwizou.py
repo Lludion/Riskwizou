@@ -3,6 +3,7 @@ from tools.printable import Printable
 from tools.list import purify
 from tools.defeat import defeat
 from tools.selection import szone
+from tools.misc import atkwin
 
 class Zone(Printable) :
 
@@ -116,6 +117,8 @@ class World(Printable):
             x.w = self
         self.continents = c
         self.map = ""
+        self.natk = 3 
+        self.ndef = 2
     
     def init_boxes(self):
         szone((-1,-1),self) # initializing the boxes
@@ -151,7 +154,9 @@ class ConsoleCountry(Printable):
     
     def new_capital(self):
         if self.capital is None:
-            self.capital = choice(self.units).z
+            if self.units:
+                self.capital = choice(self.units).z
+            #else, self has lost.
         elif self.capital.owner != self:
             self.capital.owner = self
         else:
@@ -222,9 +227,12 @@ class ConsoleCountry(Printable):
         else:
             print("No Units selected.")
     
-    def units_arrival(self,chosen,dest):
+    def units_arrival(self,chosen,dest,d=None):
         if dest.nforeign(self):
-            # diplomacy will be implemented later
+            # diplomacy will be implemented later, nwo we always attack
+            if len(chosen) >= 3:
+                print("Cannot attack with so many troops at once !")
+                return
             print("Attackers :")
             atkscore = 0
             for u in chosen:
@@ -232,7 +240,7 @@ class ConsoleCountry(Printable):
                 atkscore += atk
             print("Total : ",atkscore)
             
-            print("Defenders :")
+            print("Defenders :") # the defender should now select its two troops
             defscore = 0
             for u in dest.troops: # all foreign units are attacked
                 atk = u.attack()
@@ -245,13 +253,12 @@ class ConsoleCountry(Printable):
             else:
                 print("attackers win !")
                 defeat(dest.troops,"no") # all troops are killed
-                for u in chosen:
-                    u.move(dest)
+                atkwin(dest,chosen)
 
         else:
             for u in chosen:
                 u.move(dest)
-    
+
     def attack(self, units, enemy):
         if units != []:
             uzone = units[0]
@@ -290,13 +297,21 @@ class Country(ConsoleCountry):
                 else:
                     self.cu_zone = None
         elif self.cu_step == 1:#choosing the units
-            print("1")
+            #print("cu1")
             d.zonebox(self.cu_zone)
             self.cu_step = d.clicked_on_unit(self.cu_zone)
-        elif self.cu_step == 2:#choosing the zone where you want to move
-            print("2")
+        elif self.cu_step == 2:#one-frame-temporary stuff
+            #print("cu2")
             assert d.selectedunits[0].z == self.cu_zone
-            self.move_units(d.selectedunits,self.cu_zone,mp,d)
+            self.selecta = d.selectedunits
+            d.selectedunits = []
+            d.printedunits = []
+            self.cu_step = 3
+        elif self.cu_step == 3:#choosing the zone where you want to move
+            #print("cu3")
+            self.cu_step = self.move_units(self.selecta,self.cu_zone,mp,d)
+        elif self.cu_step == 4:#choosing the defender's units
+            self.cu_step = self.units_arrival(self.selecta,self.dest,d)
         else:
             print("omegapharma",self.cu_step)
             d.selectedunits = []
@@ -306,8 +321,64 @@ class Country(ConsoleCountry):
     
     def move_units(self,chosen,gofrom,mp,d):
         if d.flclic():
-            self.units_arrival(chosen,szone(mp,self.w))
-            self.cu_step = -1
+            self.dest = szone(mp,self.w)
+            return self.units_arrival(chosen,self.dest,d)
+        return 3
+        
+    def units_arrival(self,chosen,dest,d):
+        if dest is None:
+            return 3 # redo the choice of the destination
+        if dest.nforeign(self):
+            # diplomacy will be implemented later, nwo we always attack
+
+            if len(chosen) > self.w.natk:
+                self.g.s("Cannot attack with so many troops at once !")
+                return -1
+        
+            print("Defenders :") # the defender should now select its two troops
+            if dest.ntroops() > self.w.ndef:
+                if len(d.selectedunits) < self.w.ndef:
+                    # if a choice is possible and not everyone has been chosen:
+                    print("ZENBOX")
+                    d.zonebox(dest)
+                    arrivstep = d.select_units(dest)
+                    if arrivstep == 2:
+                        dtroops = d.selectedunits
+                        d.selectedunits = []
+                    else:#keep choosin'
+                        return 4
+                else:
+                    dtroops = d.selectedunits
+                    d.selectedunits = []
+                    
+            else:
+                dtroops = dest.troops
+            defscore = 0
+            for u in dtroops: # all foreign units are attacked
+                atk = u.attack()
+                defscore += atk
+            print("Total : ",defscore)
+            
+            print("Attackers :")
+            atkscore = 0
+            for u in chosen:
+                atk = u.attack()
+                atkscore += atk
+            print("Total : ",atkscore)
+        
+            if atkscore <= defscore:
+                print("defenders win !")
+                defeat(chosen)
+            else:
+                print("attackers win !")
+                defeat(dtroops,"no") # all troops are killed
+                atkwin(dest,chosen)
+            return -1
+
+        else:
+            for u in chosen:
+                u.move(dest)
+            return -1
     
     def turn(self,d):
         """

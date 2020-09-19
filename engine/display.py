@@ -4,6 +4,8 @@ from math import floor
 from engine.buttonMenu import *
 from tools import selection
 from tools.list import fullpm
+from tools.misc import colorname
+from random import choice
 
 def s(t): return pygame.time.wait(floor(t * 1000))
 # do not use time.sleep() - return should be useless.
@@ -97,10 +99,12 @@ class Displayer:
         return pygame.key.get_pressed()
 
     def k_events(self):
+        """" POWERFUl FUNCTION """
         return [event for event in pygame.event.get() if event.type == pygame.KEYDOWN]
 
     def flclic(self):
-        """ flushes the received events and checks for a mousebuttonsdown"""
+        """" POWERFUl FUNCTION
+         flushes the received events and checks for a mousebuttonsdown"""
         return [event for event in pygame.event.get() if event.type == pygame.MOUSEBUTTONDOWN]
 
     def clic(self,btn = 0):
@@ -185,43 +189,49 @@ class Displayer:
         fw,fh =  self.display_box()
         T(self.win,self.dstr(self.player_otm.name),20,fh+5,0,0,0,center = False,size=25)
 
+    def print_unit_i(self,i,z,c1,c2,c3,ownname,fh):
+        """ prints all the units of the type dut[i],
+        regrouping them by remaining pm """
+        u = self.g.dut[i]
+
+        if fullpm(u,z):#if exists a full pm unit:
+            a1,a2,a3,a4 = T(self.win,self.dstr(u().name)+" : "+str(len(fullpm(u,z))),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+
+            # try to print no unit twice
+            TRIES = 0
+            tau = fullpm(u,z)[TRIES]
+            while tau in [x for (_,_,_,_,x) in self.printedunits] and TRIES < z.ntroops():
+                TRIES += 1
+                tau = fullpm(u,z)[TRIES % len(fullpm(u,z))]
+            if TRIES >= z.ntroops():
+                print("already printed !")
+            else:
+                self.printedunits.append((a1,a2,a3,a4,tau))
+
+        for x in z.troops:
+            if x.pm != x.pmmax and x.name == u().name:
+                a1,a2,a3,a4 = T(self.win,self.dstr(u().name) + " " + str(x.pm) + "/" + str(x.pmmax)  + " : "+str(len([y for y in z.troops if y.name == x.name and y.pm == x.pm])),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
+                self.printedunits.append((a1,a2,a3,a4,x))
+
     def zonebox(self,z=None):
         if z is None:
             self.classicbox()
         else:
             fw,fh = self.display_box()
             if z.troops:
-                own = z.troops[0].owner
-                if own is None:
-                    c1 = c2 = c3 = 165
-                    ownname = self.dstr("independent")
-                else:
-                    c1 = own.color[0]
-                    c2 = own.color[1]
-                    c3 = own.color[2]
-                    ownname = self.dstr(own.name)
+                c1,c2,c3,ownname = colorname(self.dstr,z.troops[0].owner)
 
                 self.printedunits = []
                 for i in range(len(self.g.dut)):
-                    u = self.g.dut[i]
-
-                    if fullpm(u,z):#if exists a full pm unit:
-                        tau = fullpm(u,z)[0]
-                        a1,a2,a3,a4 = T(self.win,self.dstr(u().name)+" : "+str(len(fullpm(u,z))),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
-                        self.printedunits.append((a1,a2,a3,a4,tau))
-
-                    for x in z.troops:
-                        if x.pm != x.pmmax and x.name == u().name:
-                            a1,a2,a3,a4 = T(self.win,self.dstr(u().name) + " " + str(x.pm) + "/" + str(x.pmmax)  + " : "+str(len([y for y in z.troops if y.name == x.name and y.pm == x.pm])),24,fh+30+28*i,c1,c2,c3,center=False,size=30)
-                            self.printedunits.append((a1,a2,a3,a4,x))
-
+                    self.print_unit_i(i,z,c1,c2,c3,ownname,fh)
                 if self.selectedunits:
                     T(self.win,str(len(self.selectedunits)) + self.dstr("selected"),24,fh+30+28*len(self.g.dut),c1,c2,c3,center=False,size=30)
             else:
                 c1 = c2 = c3 = 65
                 ownname = self.dstr("independent")
                 T(self.win,self.dstr("notroops"),24,fh+30,c1,c2,c3,center=False,size=30)
-                #T(self.win,self.dstr("independent"),fw-2-len(self.dstr("independent"))*8,fh+10,255,200,200,center=False)
+
+            # printing top of the box
             _,x,_,_ = T(self.win,self.dstr(z.name),20,fh+5,205,205,205,center=False,size=25)
             _,x,_,_ = T(self.win," - ",x,fh+5,205,205,205,center=False,size=25)
             _,x,_,_ = T(self.win,ownname,x,fh+5,c1,c2,c3,center=False,size=25)
@@ -230,20 +240,21 @@ class Displayer:
                     self.win.blit(pygame.transform.scale(self.img["star"],(40,40)), (x , fh - 15))
 
     def clicked_on_unit(self,z):
-        """ used when clicking on units to select them """
+        """" POWERFUl FUNCTION
+
+         used when clicking on units to select them """
         if [x for x in z.troops if x.owner == self.g.playingnow]: # nodiplomacy
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    print("don PERDRI")
                     mx,my = pygame.mouse.get_pos()
                     for (xm,xM,ym,yM,u) in self.printedunits:
                         if selection.box(xm,mx,xM,ym,my,yM):
-                            print("aHA!!")
+                            print("Unit selected.")
                             self.selectedunits.append(u)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         if self.selectedunits: # units have been selected
-                            print("GOGOGO!")
+                            print("All units selected!")
                             return 2
                         else:
                             return -1
@@ -251,8 +262,31 @@ class Displayer:
                         print("quit!")
                         return -1
             return 1
-        else: # no units selectable
+        else: # no units are selectable
             return -1
+
+    def select_units(self,z,maxn=2,minn=2):
+        """" POWERFUl FUNCTION """
+        if z.troops: # nodiplomacy
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mx,my = pygame.mouse.get_pos()
+                    for (xm,xM,ym,yM,u) in self.printedunits:
+                        if selection.box(xm,mx,xM,ym,my,yM):
+                            if len(self.selectedunits) < maxn:
+                                self.selectedunits.append(u)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_g:
+                        if self.selectedunits and len(self.selectedunits) >= minn: # units have been selected
+                            print("small number selected")
+                            return 2
+            if len(self.selectedunits) == maxn:
+                return 2
+            else:
+                return 1
+        else: # no units are selectable
+            return -1
+
 
     def set_str(self,d):
         self.dict_str = d

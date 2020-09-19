@@ -66,6 +66,7 @@ class DGame(Game):
     def __init__(self,pf,w=None):
         super().__init__(w=w)
         self.s = pf # print function
+        self.selected = []
 
     def turn(self):
         """ the c must be Countries and not ConsoleCountries """
@@ -74,6 +75,7 @@ class DGame(Game):
             c.turn(self.d)
             if self.ended:
                 return
+
 
 class Networker:
 

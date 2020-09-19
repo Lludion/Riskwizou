@@ -86,6 +86,7 @@ class Unit(Printable):
         self.z = None
 
         if ancientz.troops == [] and self.owner.capital is ancientz:
+            ancientz.owner = None
             self.owner.capital = None
             self.owner.new_capital()
 
