@@ -11,7 +11,8 @@ class Game:
         self.graphical = False
         self.ended = False
         self.s = print # show function is print by default
-        self.playingnow =None
+        self.playingnow = None
+        self.turn_num = 0
 
     def set_p(self,players):
         """ given a set of players, sets self.p and self.c (players and countries) """
@@ -28,6 +29,7 @@ class Game:
 
     def begin(self):
         self.s(self.c)
+        self.turn_num = 0
         self.__set_startzones()
 
     def __randomzone(self):
@@ -60,6 +62,7 @@ class Game:
             c.turn()
             if self.ended:
                 return
+        self.turn_num += 1
 
 class DGame(Game):
 
@@ -72,9 +75,11 @@ class DGame(Game):
         """ the c must be Countries and not ConsoleCountries """
         for c in self.c:
             self.playingnow = c
+            c.begin_turn()
             c.turn(self.d)
             if self.ended:
                 return
+        self.turn_num += 1
 
 
 class Networker:

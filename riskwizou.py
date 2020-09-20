@@ -281,6 +281,22 @@ class Country(ConsoleCountry):
         self.cu_step = 0
         self.cu_zone = None
         self.action = ''
+    
+    def begin_turn(self):
+        if self.g.turn_num > 0:
+            if self.d.keys_s():
+                uc = 0
+            elif self.d.keys_d():
+                uc = 1
+            elif self.d.keys_f():
+                uc = 2
+            else:
+                uc = randint(0,2)
+            if uc == 0:
+                self.capital.add_troop([self.g.dut[0],self.g.dut[0]],self)
+            else:
+                self.capital.add_troop([self.g.dut[uc]],self)
+        
 
     def choose_units(self,mp,d):
         """ This function is used when m is being pressed. 
@@ -323,7 +339,10 @@ class Country(ConsoleCountry):
     def move_units(self,chosen,gofrom,mp,d):
         if d.flclic():
             self.dest = szone(mp,self.w)
-            return self.units_arrival(chosen,self.dest,d)
+            if self.dest in self.cu_zone.adj:
+                return self.units_arrival(chosen,self.dest,d)
+            else:
+                return 3
         return 3
         
     def units_arrival(self,chosen,dest,d):

@@ -18,7 +18,7 @@ def atkwin(dest,chosen):
         for u in chosen:
             u.pm -= 1
 
-def dontwice(fromlist,tolist,maxtries,quart=None,stilladd=False,di=0,qfr=None):
+def dontwice(fromlist,tolist,maxtries,quart=None,stilladd=True,di=0,qfr=None,bu=None):
     """" try to add no unit twice to the list
     from the list fromlist, to the list tolist
     will not add it if already present
@@ -30,7 +30,12 @@ def dontwice(fromlist,tolist,maxtries,quart=None,stilladd=False,di=0,qfr=None):
     indicate positioning clues, else leave it as None
 
     if stilladd is true, it will try to add the following element to tolist,
-    else, nothing will be done upon failure """
+    else, nothing will be done upon failure
+
+    bu is the base unit that we try to select. If it is None, it will try to
+    infer it from di """
+    if di is None:
+        di = [i for i in range(len(fromlist)) if fromlist[i].id == bu.id]
     if quart is not None:
         a1,a2,a3,a4 = quart
         utolist = [x for _,_,_,_,x in tolist]

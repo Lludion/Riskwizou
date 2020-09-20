@@ -117,6 +117,16 @@ class Displayer:
         """ true if m is down """
         return self.keys()[pygame.K_m]
 
+    def key_s(self):
+        """ true if s is down """
+        return self.keys()[pygame.K_s]
+    def key_d(self):
+        """ true if d is down """
+        return self.keys()[pygame.K_d]
+    def key_f(self):
+        """ true if f is down """
+        return self.keys()[pygame.K_f]
+
     def game(self):
         self.tick()
         self.flip()
@@ -321,7 +331,7 @@ class Displayer:
             (xm,xM,ym,yM,u) = self.printedunits[i]
             if selection.box(xm,mx,xM,ym,my,yM):
                 print("Unit selected.")
-                dontwice(self.printedunits,self.selectedunits,z.ntroops(),di=i,qfr=(xm,xM,ym,yM))
+                dontwice([x for x in z.troops if x.name == u.name and x.pm == u.pm] ,self.selectedunits,z.ntroops(),di=0)
 
     def select_units(self,z,maxn=2,minn=2):
         """" POWERFUl FUNCTION """
