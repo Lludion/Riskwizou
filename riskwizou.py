@@ -74,7 +74,7 @@ class Cont(Printable):
     def __init__(self, n, p):
         self.name = n
         self.power = p
-        self.claimed = False
+        self.claimed = None # no one claimed it yet
         self.zones = []
         self.w = None # world
     
@@ -114,7 +114,7 @@ class Cont(Printable):
         """ allows a country to claim the prize for conquering this continent """
         if self.claimed is False:
             if forall(lambda x:x.owner == c,self.zones):
-                self.claimed = True
+                self.claimed = c # the country c claimed it successfully
                 pow = self.power
                 while pow > 0:
                     if pow > 1:
@@ -166,6 +166,12 @@ class ConsoleCountry(Printable):
         self.w = None # world
         self.graphical = False #is a Console Country
         self.capital = None
+        self.terscore = 0
+        self.uscore = 0
+        self.combatscore = 0
+    
+    def score(self):
+        return self.terscore + self.uscore + self.combatscore
     
     def new_capital(self):
         if self.capital is None:
@@ -286,7 +292,14 @@ class ConsoleCountry(Printable):
 
     def remove(self, unit):
         self.units = [x for x in self.units if  x.id  !=  unit.id]
-
+    
+    def owned(self):
+        ownz = []
+        for c in self.w.continents:
+            for z in c.zones:
+                if z.owner == self:
+                    ownz.append(z)
+        return ownz
 
 class Country(ConsoleCountry):
     
@@ -298,6 +311,14 @@ class Country(ConsoleCountry):
         self.action = ''
     
     def begin_turn(self,d):
+        self.terscore = 0
+        for z in self.owned():
+            self.terscore += 10
+            if z.cont.claimed == self:
+                self.terscore += 10
+            if forall(lambda x: x.owner == self,z.cont.zones):
+                self.terscore += 10
+        self.uscore = sum([u.d for u in self.units])
         if self.g.turn_num > 0:
             if d.key_s():
                 uc = 0
@@ -410,6 +431,7 @@ class Country(ConsoleCountry):
         
             if atkscore <= defscore:
                 print("defenders win !")
+                dtroops[0].owner.combatscore += sum([u.d for u in chosen])
                 defeat(chosen)
                 if d.player_otm == self.p:
                     d.announce("gdefeat")
@@ -417,7 +439,10 @@ class Country(ConsoleCountry):
                     d.announce("gvictory")
             else:
                 print("attackers win !")
+                self.combatscore += sum([u.d for u in chosen])
                 defeat(dtroops,"no") # all troops are killed
+                #if dest.troops == []: # invasion
+                #    self.combatscore += 1 # currently removed for balance reasons
                 atkwin(dest,chosen)
                 if d.player_otm == self.p:
                     d.announce("gvictory")
@@ -460,7 +485,6 @@ class Country(ConsoleCountry):
         for c in self.w.continents:
             if forall(lambda x: x.owner is self, c.zones):
                 c.claim_prize(self,self.g.dut)
-            
 
 class Player(Printable):
     

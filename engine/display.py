@@ -204,6 +204,12 @@ class Displayer:
     def classicbox(self):
         fw,fh =  self.display_box()
         T(self.win,self.dstr(self.player_otm.name),20,fh+5,0,0,0,center = False,size=25)
+        c1,c2,c3 = self.g.playingnow.color
+        T(self.win,self.dstr("turnof")+" "+self.dstr(self.g.playingnow.name),30,fh+45,c1,c2,c3,center = False,size=25)
+        for i in range(len(self.g.c)):
+            co = self.g.c[i]
+            c1,c2,c3 = co.color
+            T(self.win,self.dstr(co.name) + " : " + str(co.score()),30,fh+70+25*i,c1,c2,c3,center = False,size=25)
 
     def __boxstr(self,px=0,py=0):
         return str(self.img["box"].get_width()+px)+","+str(self.win.get_height() - self.img["box"].get_height() + py)
