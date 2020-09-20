@@ -44,6 +44,8 @@ class Unit(Printable):
                         if self.owner.capital == ancientz:
                             self.owner.capital = None
                             self.owner.new_capital()
+            elif z == self.z:
+                pass
             else:
                 print("Too far.")
 

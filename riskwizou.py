@@ -381,6 +381,8 @@ class Country(ConsoleCountry):
             self.dest = szone(mp,self.w)
             if self.dest in self.cu_zone.adj:
                 return self.units_arrival(chosen,self.dest,d)
+            elif self.dest == self.cu_zone:
+                return -1
             else:
                 return 3
         return 3
