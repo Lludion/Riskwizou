@@ -1,6 +1,6 @@
 from random import randint,choice
 from tools.printable import Printable
-from tools.list import purify
+from tools.list import purify,forall
 from tools.defeat import defeat
 from tools.selection import szone
 from tools.misc import atkwin
@@ -74,6 +74,7 @@ class Cont(Printable):
     def __init__(self, n, p):
         self.name = n
         self.power = p
+        self.claimed = False
         self.zones = []
         self.w = None # world
     
@@ -108,6 +109,20 @@ class Cont(Printable):
     def print_conns(self):
         for z in self.zones:
             z.print_conns()
+    
+    def claim_prize(self,c,dut):
+        """ allows a country to claim the prize for conquering this continent """
+        if self.claimed is False:
+            if forall(lambda x:x.owner == c,self.zones):
+                self.claimed = True
+                pow = self.power
+                while pow > 0:
+                    if pow > 1:
+                        c.capital.add_troop([dut[2]],c)
+                        pow -= 2
+                    else:
+                        c.capital.add_troop([dut[0]],c)
+                        pow -= 1
         
 class World(Printable):
     
@@ -282,13 +297,13 @@ class Country(ConsoleCountry):
         self.cu_zone = None
         self.action = ''
     
-    def begin_turn(self):
+    def begin_turn(self,d):
         if self.g.turn_num > 0:
-            if self.d.keys_s():
+            if d.key_s():
                 uc = 0
-            elif self.d.keys_d():
+            elif d.key_d():
                 uc = 1
-            elif self.d.keys_f():
+            elif d.key_f():
                 uc = 2
             else:
                 uc = randint(0,2)
@@ -296,7 +311,6 @@ class Country(ConsoleCountry):
                 self.capital.add_troop([self.g.dut[0],self.g.dut[0]],self)
             else:
                 self.capital.add_troop([self.g.dut[uc]],self)
-        
 
     def choose_units(self,mp,d):
         """ This function is used when m is being pressed. 
@@ -436,6 +450,12 @@ class Country(ConsoleCountry):
                             self.action = "choose_units"
                     if event.type == d.pygame.MOUSEBUTTONDOWN:
                         self.cu_zone = szone(mp,self.w)
+    
+    def end_turn(self,d=None):
+        for c in self.w.continents:
+            if forall(lambda x: x.owner is self, c.zones):
+                c.claim_prize(self,self.g.dut)
+            
 
 class Player(Printable):
     

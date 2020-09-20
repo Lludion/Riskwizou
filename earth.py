@@ -89,6 +89,7 @@ def create_earth():
     earth.purify_transitions()
     earth.activate_transitions()
     earth.setmap("worldmap")
+    earth.name = "earth"
     return earth
 
 ## Players & Countries

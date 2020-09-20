@@ -75,8 +75,9 @@ class DGame(Game):
         """ the c must be Countries and not ConsoleCountries """
         for c in self.c:
             self.playingnow = c
-            c.begin_turn()
+            c.begin_turn(self.d)
             c.turn(self.d)
+            c.end_turn(self.d)
             if self.ended:
                 return
         self.turn_num += 1
