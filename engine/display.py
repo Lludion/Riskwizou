@@ -4,7 +4,7 @@ from math import floor
 from engine.buttonMenu import *
 from tools import selection
 from tools.list import fullpm
-from tools.misc import colorname
+from tools.misc import colorname,dontwice
 from tools.text_display import textinabox,textimg
 from tools.option import Option
 from random import choice
@@ -253,16 +253,8 @@ class Displayer:
         if fullpm(u,z):#if exists a full pm unit:
             j,a1,a2,a3,a4 = textinabox(j,self.win,self.dstr(u().name)+" : "+str(len(fullpm(u,z))),fh,c1,c2,c3)
 
+            dontwice(fullpm(u,z),self.printedunits,z.ntroops(),(a1,a2,a3,a4),True)
             # try to print no unit twice - useless ?
-            TRIES = 0
-            tau = fullpm(u,z)[TRIES]
-            while tau in [x for (_,_,_,_,x) in self.printedunits] and TRIES < z.ntroops():
-                TRIES += 1
-                tau = fullpm(u,z)[TRIES % len(fullpm(u,z))]
-            if TRIES >= z.ntroops():
-                print("already printed !")
-            else:
-                self.printedunits.append((a1,a2,a3,a4,tau))
 
         for x in z.troops:
             if x.pm != x.pmmax and x.name == u().name:
@@ -308,11 +300,7 @@ class Displayer:
         if [x for x in z.troops if x.owner == self.g.playingnow]: # nodiplomacy
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    mx,my = pygame.mouse.get_pos()
-                    for (xm,xM,ym,yM,u) in self.printedunits:
-                        if selection.box(xm,mx,xM,ym,my,yM):
-                            print("Unit selected.")
-                            self.selectedunits.append(u)
+                    self.try_add_unit(z)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         if self.selectedunits: # units have been selected
@@ -327,16 +315,20 @@ class Displayer:
         else: # no units are selectable
             return -1
 
+    def try_add_unit(self,z):
+        mx,my = pygame.mouse.get_pos()
+        for i in range(len(self.printedunits)):
+            (xm,xM,ym,yM,u) = self.printedunits[i]
+            if selection.box(xm,mx,xM,ym,my,yM):
+                print("Unit selected.")
+                dontwice(self.printedunits,self.selectedunits,z.ntroops(),di=i,qfr=(xm,xM,ym,yM))
+
     def select_units(self,z,maxn=2,minn=2):
         """" POWERFUl FUNCTION """
         if z.troops: # nodiplomacy
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    mx,my = pygame.mouse.get_pos()
-                    for (xm,xM,ym,yM,u) in self.printedunits:
-                        if selection.box(xm,mx,xM,ym,my,yM):
-                            if len(self.selectedunits) < maxn:
-                                self.selectedunits.append(u)
+                    self.try_add_unit(z)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_g:
                         if self.selectedunits and len(self.selectedunits) >= minn: # units have been selected

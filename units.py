@@ -103,7 +103,10 @@ class Unit(Printable):
 
     def dies(self):
         ancientz = self.z
-        self.z.remove(self)
+        try:
+            self.z.remove(self)
+        except AttributeError:
+            raise FutureWarning("Attempting to kill a dead unit.")
         self.z = None
 
         if ancientz.troops == [] and self.owner.capital is ancientz:
