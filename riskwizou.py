@@ -309,8 +309,13 @@ class Country(ConsoleCountry):
                 uc = randint(0,2)
             if uc == 0:
                 self.capital.add_troop([self.g.dut[0],self.g.dut[0]],self)
+                d.announce("gsoldier")
             else:
                 self.capital.add_troop([self.g.dut[uc]],self)
+                if uc == 1:
+                    d.announce("gcavalier")
+                elif uc == 2:
+                    d.announce("gcannon")
 
     def choose_units(self,mp,d):
         """ This function is used when m is being pressed. 

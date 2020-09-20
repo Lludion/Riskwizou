@@ -230,10 +230,14 @@ class Displayer:
         return j
 
     def announce(self,msg):
+        self.remove_announce()
         img = self.img[self.dstr(msg)]
-        self.add_to_buffer(img,"xy",100)
+        self.add_to_buffer(img,"xya",100)
 
     """ buffer functions """
+
+    def remove_announce(self):
+        self.buffer = [x for x in self.buffer if not x[1].announce]
 
     def add_to_buffer(self,pic,opt,time):
         self.buffer.append((pic,Option(opt),time))

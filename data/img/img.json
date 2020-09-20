@@ -14,5 +14,10 @@
 "gvictoire": "announce/victoire.png",
 "gdefaite": "announce/défaite.png",
 "gvictory": "announce/victory.png",
-"gdefeat": "announce/defeat.png"
+"gdefeat": "announce/defeat.png",
+"gcavalier": "announce/cavalier.png",
+"gcannon": "announce/cannon.png",
+"gcanon": "announce/canon.png",
+"gsoldier": "announce/soldier.png",
+"gsoldat": "announce/soldat.png"
 }
