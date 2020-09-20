@@ -1,4 +1,6 @@
-import pygame
+import contextlib
+with contextlib.redirect_stdout(None):
+    import pygame
 from collections import defaultdict
 from math import floor
 from engine.buttonMenu import *

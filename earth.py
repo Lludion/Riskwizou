@@ -1,4 +1,4 @@
-from riskwizou import World,Zone,Cont,Country,Player
+from board import World,Zone,Cont,Country,Player
 
 def create_earth():
     ## Continents
