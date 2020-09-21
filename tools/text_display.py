@@ -3,7 +3,8 @@ from pygame.image import load
 import pygame.font as pff
 
 pff.init()
-SYSFONT = 'playbill' # 'calibri' or 'freesansbold.ttf' may be used
+SYSFONT = 'calibri' #'playbill' or  'calibri' or 'freesansbold.ttf' may be used
+# to see usable fonts : pygame.font.get_fonts()
 #do NOT use None
 
 def T(cw,txt,x,y,r=0,g=0,b=0,aliasing=1,size=20,center=True):

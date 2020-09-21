@@ -167,7 +167,7 @@ class Displayer:
         if width < self.opt["sizex"] or height < self.opt["sizey"]:
             self.opt["sizex"] = width
             self.opt["sizey"] = height
-            with open("data/json/options.json","w") as f:
+            with open("data/usr/options.json","w") as f:
                 f.write(json.dumps(self.opt))
 
     def flip(self):
