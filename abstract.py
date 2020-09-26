@@ -1,4 +1,4 @@
-from random import choice
+from random import choice,randint
 from net.networking import NetworkServer, NetworkClient
 
 class Game:
@@ -13,6 +13,7 @@ class Game:
         self.s = print # show function is print by default
         self.playingnow = None
         self.turn_num = 0
+        self.id = randint(1, 99999999999999)
 
     def set_p(self,players):
         """ given a set of players, sets self.p and self.c (players and countries) """
@@ -64,6 +65,20 @@ class Game:
                 return
         self.turn_num += 1
 
+    def to_bytes(self):
+        msg = ("game{" + str(self.id) + "}{").encode('utf-8')
+
+        msg += w.to_bytes()
+        msg += b"[" + b",".join([pl.to_bytes() for pl in p])+b"]"
+        msg += b"[" + b",".join([co.to_bytes() for co in c])+b"]"
+        msg += str(dut).encode('utf-8')
+        msg += str(graphical).encode('utf-8')
+        msg += str(ended).encode('utf-8')
+        msg += str(playingnow).encode('utf-8')
+        msg += str(turn_num).encode('utf-8')
+
+        return msg + "}".encode('utf-8')
+
 class DGame(Game):
 
     def __init__(self,pf,w=None):
@@ -82,7 +97,6 @@ class DGame(Game):
             if self.ended:
                 return
         self.turn_num += 1
-
 
 class Networker:
 
