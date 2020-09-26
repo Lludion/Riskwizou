@@ -59,7 +59,7 @@ def create_earth():
     earth["greatbritain"].add_conns(earth["scandinavia"],earth["west"],earth["north"])
     earth["scandinavia"].add_conns(earth["north"],earth["ukraine"])
     earth["north"].add_conns(earth["south"],earth["west"],earth["ukraine"])
-    earth["south"].add_conns(earth["west"],earth["ukraine"])
+    earth["south"].add_conns(earth["west"],earth["ukraine"],"northafrica","middleeastern")
 
     #Asia
 
@@ -69,6 +69,9 @@ def create_earth():
     earth["japan"].add_conns("mongolia","kamschatka")
     earth["middleeastern"].add_conns("ukraine","egypt","afghanistan","india","eastafrica")
     earth["siam"].add_conns("india","indonesia")
+    earth["afghanistan"].add_conns("india","ukraine")
+    earth["mongolia"].add_conns("siberia",'kamschatka')
+    earth["yakutia"].add_cons("siberia","kamschatka")
 
     #Oceania
     earth["westaustralia"].add_conns("newguinea","eastaustralia","madagascar","indonesia")
