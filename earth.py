@@ -71,7 +71,7 @@ def create_earth():
     earth["siam"].add_conns("india","indonesia")
     earth["afghanistan"].add_conns("india","ukraine")
     earth["mongolia"].add_conns("siberia",'kamschatka')
-    earth["yakutia"].add_cons("siberia","kamschatka")
+    earth["yakutia"].add_conns("siberia","kamschatka")
 
     #Oceania
     earth["westaustralia"].add_conns("newguinea","eastaustralia","madagascar","indonesia")
